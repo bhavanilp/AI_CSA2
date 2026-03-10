@@ -37,10 +37,14 @@ export interface ChatResponse {
   }>;
   should_escalate: boolean;
   escalation_reason?: string;
+  used_vector_store: boolean;
+  vector_store_note?: string;
 }
 
 export const processChat = async (req: ChatRequest): Promise<ChatResponse> => {
   try {
+    const MIN_VECTOR_RELEVANCE_SCORE = 0.60;
+
     // Get or create conversation
     let conversationId = req.conversation_id;
     if (!conversationId) {
@@ -55,15 +59,29 @@ export const processChat = async (req: ChatRequest): Promise<ChatResponse> => {
       organization_id: req.organization_id,
     });
 
-    logger.info(`Retrieved ${retrievedChunks.length} chunks for query`);
+    const relevantChunks = retrievedChunks.filter(
+      (chunk: any) => typeof chunk.score === 'number' && chunk.score >= MIN_VECTOR_RELEVANCE_SCORE
+    );
+    const shouldUseVectorStore = relevantChunks.length > 0;
 
-    // 3. Build context from retrieved chunks
-    const contextChunks = retrievedChunks
-      .slice(0, 5)
-      .map((chunk: any, idx: number) => `[Source ${idx + 1}]: ${chunk.metadata.chunk_text || ''}`)
+    logger.info(
+      `Retrieved ${retrievedChunks.length} chunks for query, ${relevantChunks.length} passed relevance threshold ${MIN_VECTOR_RELEVANCE_SCORE}`
+    );
+
+    // 3. Build context from retrieved chunks.
+    // Limit to 3 chunks, each capped at 400 chars to keep Ollama input tokens small.
+    const MAX_CHUNK_CHARS = 400;
+    const contextChunks = relevantChunks
+      .slice(0, 3)
+      .map((chunk: any, idx: number) => {
+        const text = (chunk.metadata.chunk_text || '').slice(0, MAX_CHUNK_CHARS);
+        return `[Source ${idx + 1}]: ${text}`;
+      })
       .join('\n\n');
 
-    logger.info(`Context built with ${retrievedChunks.slice(0, 5).length} chunks, total length: ${contextChunks.length}`);
+    logger.info(
+      `Context built with ${Math.min(relevantChunks.length, 3)} chunks (~${contextChunks.length} chars total)`,
+    );
 
     // 4. Check for escalation keywords
     const escalationRulesResult = await query(
@@ -87,34 +105,46 @@ export const processChat = async (req: ChatRequest): Promise<ChatResponse> => {
     let answer = '';
     let confidence = 0;
 
-    if (!shouldEscalate && contextChunks.length > 0) {
-      const systemPrompt = `You are a helpful and knowledgeable customer support AI assistant. 
-Answer questions based on the provided context below.
-Be direct, specific, and accurate in your responses.
-If the context contains the answer, provide it clearly and concisely.
-If you cannot find the answer in the context, say "I don't have that information available."
+    let usedVectorStore = false;
+    let vectorStoreNote: string | undefined;
 
-Context:
-${contextChunks}`;
+    const systemPromptForContext = `You are a concise customer support assistant. Answer based only on the provided context.`;
+    const fallbackSystemPrompt = `You are a helpful customer support assistant. Answer clearly and concisely.`;
 
-      const result = await generateAnswer(systemPrompt, req.message, '');
-      answer = result.answer;
-      confidence = result.confidence;
+    try {
+      if (!shouldEscalate && shouldUseVectorStore && contextChunks.length > 0) {
+        const result = await generateAnswer(systemPromptForContext, req.message, contextChunks);
+        answer = result.answer;
+        confidence = result.confidence;
+        usedVectorStore = true;
 
-      // Check if confidence is too low
-      if (confidence < config.rag.confidence_threshold) {
-        shouldEscalate = true;
-        escalationReason = 'confidence_low';
+        if (confidence < config.rag.confidence_threshold) {
+          shouldEscalate = true;
+          escalationReason = 'confidence_low';
+        }
+      } else if (!shouldEscalate) {
+        const fallbackResult = await generateAnswer(fallbackSystemPrompt, req.message, '');
+        answer = `_Note: This answer does not use vector store context._\n\n${fallbackResult.answer}`;
+        confidence = Math.max(0.5, fallbackResult.confidence);
+        usedVectorStore = false;
+        vectorStoreNote = 'No relevant vector-store content matched the question.';
       }
-    } else if (!shouldEscalate) {
-      answer = `I couldn't find information about that. Let me connect you with a support agent.`;
-      confidence = 0.3;
-      shouldEscalate = true;
-      escalationReason = 'confidence_low';
+    } catch (llmError: any) {
+      const isTimeout =
+        llmError?.code === 'ECONNABORTED' ||
+        llmError?.code === 'ETIMEDOUT' ||
+        (llmError?.message || '').toLowerCase().includes('timeout');
+      logger.error(`LLM call failed: ${llmError}`);
+      answer = isTimeout
+        ? 'The AI model is taking too long to respond. Please try again in a moment.'
+        : 'An error occurred while generating the answer. Please try again.';
+      confidence = 0;
+      usedVectorStore = false;
+      vectorStoreNote = 'LLM error; no vector context used.';
     }
 
     // 6. Prepare response with sources
-    const sources = retrievedChunks.slice(0, 5).map((chunk: any) => ({
+    const sources = relevantChunks.slice(0, 5).map((chunk: any) => ({
       source_id: chunk.metadata.source_id,
       name: chunk.metadata.source_name,
       url: chunk.metadata.source_url,
@@ -159,6 +189,8 @@ ${contextChunks}`;
       sources,
       should_escalate: shouldEscalate,
       escalation_reason: escalationReason,
+      used_vector_store: usedVectorStore,
+      vector_store_note: vectorStoreNote,
     };
   } catch (error) {
     logger.error(`Chat processing error: ${error}`);

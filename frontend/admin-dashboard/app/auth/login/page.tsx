@@ -26,8 +26,9 @@ export default function LoginPage() {
 
     try {
       const response = await axios.post(
-        `${process.env.NEXT_PUBLIC_API_ENDPOINT}/api/auth/login`,
-        { email, password }
+        '/api/auth/login',  // proxied via next.config.js rewrites
+        { email, password },
+        { timeout: 10000 },
       );
 
       // Store token
@@ -35,9 +36,13 @@ export default function LoginPage() {
       localStorage.setItem('user', JSON.stringify(response.data.user));
 
       // Redirect to dashboard
-      router.push('/dashboard');
+      router.replace('/dashboard');
     } catch (err: any) {
-      setError(err.response?.data?.error || 'Login failed');
+      if (err.code === 'ECONNABORTED') {
+        setError('Cannot connect to backend. Ensure the backend server is running on port 3000.');
+      } else {
+        setError(err.response?.data?.error || 'Login failed');
+      }
     } finally {
       setIsLoading(false);
     }

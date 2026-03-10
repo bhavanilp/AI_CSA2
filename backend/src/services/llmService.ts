@@ -32,10 +32,14 @@ export const getOpenAIClient = (): OpenAI => {
 export const generateEmbedding = async (text: string): Promise<number[]> => {
   try {
     if (config.llm.provider === 'ollama') {
-      const response = await axios.post(`${config.llm.ollama.api_url}/api/embeddings`, {
-        model: config.llm.ollama.embedding_model,
-        prompt: text,
-      });
+      const response = await axios.post(
+        `${config.llm.ollama.api_url}/api/embeddings`,
+        {
+          model: config.llm.ollama.embedding_model,
+          prompt: text.slice(0, 2000), // cap input to avoid slow embeddings
+        },
+        { timeout: 30000 },
+      );
       return response.data.embedding;
     }
 
@@ -61,8 +65,13 @@ export const generateAnswer = async (
     let answer = '';
 
     if (config.llm.provider === 'ollama') {
-      // Simplified prompt for faster response
-      const prompt = `Answer this question in 1-2 sentences: ${userQuery}`;
+      // Keep the Ollama prompt short to minimise input token processing time.
+      // Full system prompt + large context causes multi-minute timeouts on local LLMs.
+      const prompt =
+        context.trim().length > 0
+          ? `You are a concise support assistant. Use ONLY the context below.\nContext:\n${context}\nQuestion: ${userQuery}\nAnswer briefly:`
+          : `${systemPrompt}\nQuestion: ${userQuery}\nAnswer briefly:`;
+
       const response = await axios.post(
         `${config.llm.ollama.api_url}/api/generate`,
         {
@@ -71,15 +80,15 @@ export const generateAnswer = async (
           stream: false,
           options: {
             temperature: 0.2,
-            num_predict: 128,
+            num_predict: 200,
             top_k: 40,
             top_p: 0.9,
           },
         },
-        { timeout: 120000 }
+        { timeout: 180000 },
       );
       answer = (response.data.response || '').trim();
-      logger.info(`LLM response: "${answer}"`);
+      logger.info(`LLM response: "${answer.slice(0, 120)}..."`);
     } else {
       const client = getOpenAIClient();
       const response = await client.chat.completions.create({

@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { v4 as uuidv4 } from 'uuid';
 import { processChat, getConversation } from '../services/chatService';
+import { getIngestedSourceUrls } from '../config/vectorDb';
 import { asyncHandler } from '../middleware/errorHandler';
 import logger from '../utils/logger';
 
@@ -27,6 +28,18 @@ router.post(
 
     const response = await processChat(chatRequest);
     res.status(200).json(response);
+  })
+);
+
+// GET /api/chat/ingested-urls
+router.get(
+  '/ingested-urls',
+  asyncHandler(async (_req: Request, res: Response) => {
+    const urls = getIngestedSourceUrls();
+    res.status(200).json({
+      count: urls.length,
+      urls,
+    });
   })
 );
 

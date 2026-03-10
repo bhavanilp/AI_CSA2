@@ -237,13 +237,27 @@ router.post(
 
     const result = await ingestWebsite(organizationId as string, url, source_name);
 
+    // Persist a source record so GET /api/admin/sources reflects ingested content
+    await query(
+      `INSERT INTO sources (id, organization_id, name, source_type, config, status, created_at, updated_at)
+       VALUES ($1, $2, $3, $4, $5, 'indexed', NOW(), NOW())
+       ON CONFLICT DO NOTHING`,
+      [
+        result.sourceId,
+        organizationId,
+        source_name || new URL(url).hostname,
+        'website',
+        JSON.stringify({ url, chunk_count: result.chunkCount }),
+      ],
+    );
+
     res.status(201).json({
       source_id: result.sourceId,
       source_url: result.url,
       chunk_count: result.chunkCount,
       status: 'indexed',
     });
-  })
+  }),
 );
 
 export default router;

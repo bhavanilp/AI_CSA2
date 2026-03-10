@@ -1,4 +1,6 @@
 import { Pinecone } from '@pinecone-database/pinecone';
+import { promises as fs } from 'fs';
+import path from 'path';
 import { config } from './index';
 import logger from '../utils/logger';
 
@@ -8,6 +10,41 @@ let localVectors: Array<{
   values: number[];
   metadata: Record<string, any>;
 }> = [];
+
+const LOCAL_VECTOR_STORE_PATH = path.resolve(process.cwd(), 'data', 'local-vector-store.json');
+
+type LocalVectorStore = {
+  vectors: Array<{
+    id: string;
+    values: number[];
+    metadata: Record<string, any>;
+  }>;
+  updated_at: string;
+};
+
+const saveLocalVectorStore = async (): Promise<void> => {
+  const payload: LocalVectorStore = {
+    vectors: localVectors,
+    updated_at: new Date().toISOString(),
+  };
+
+  await fs.mkdir(path.dirname(LOCAL_VECTOR_STORE_PATH), { recursive: true });
+  await fs.writeFile(LOCAL_VECTOR_STORE_PATH, JSON.stringify(payload, null, 2), 'utf8');
+};
+
+const loadLocalVectorStore = async (): Promise<void> => {
+  try {
+    const raw = await fs.readFile(LOCAL_VECTOR_STORE_PATH, 'utf8');
+    const parsed = JSON.parse(raw) as LocalVectorStore;
+    localVectors = Array.isArray(parsed.vectors) ? parsed.vectors : [];
+  } catch (error: any) {
+    if (error.code === 'ENOENT') {
+      localVectors = [];
+      return;
+    }
+    throw error;
+  }
+};
 
 const cosineSimilarity = (a: number[], b: number[]): number => {
   const length = Math.min(a.length, b.length);
@@ -30,7 +67,15 @@ const cosineSimilarity = (a: number[], b: number[]): number => {
 
 export const initializePinecone = async (): Promise<void> => {
   if (config.vector_db.provider !== 'pinecone') {
-    logger.info('Using local in-memory vector store');
+    await loadLocalVectorStore();
+    const urls = getIngestedSourceUrls();
+    logger.info(`Using local file vector store at ${LOCAL_VECTOR_STORE_PATH}`);
+    logger.info(`Loaded ${localVectors.length} vectors and ${urls.length} ingested URLs from local store`);
+
+    if (urls.length > 0) {
+      logger.info(`Ingested URLs at startup: ${urls.join(', ')}`);
+    }
+
     return;
   }
 
@@ -72,6 +117,7 @@ export const upsertVectors = async (
         localVectors.push(vector);
       }
     }
+    await saveLocalVectorStore();
     logger.info(`Upserted ${vectors.length} vectors to local store`);
     return;
   }
@@ -129,6 +175,7 @@ export const deleteVectors = async (ids: string[]): Promise<void> => {
   if (config.vector_db.provider !== 'pinecone') {
     const idSet = new Set(ids);
     localVectors = localVectors.filter((item) => !idSet.has(item.id));
+    await saveLocalVectorStore();
     logger.info(`Deleted ${ids.length} vectors from local store`);
     return;
   }
@@ -142,3 +189,18 @@ export const deleteVectors = async (ids: string[]): Promise<void> => {
     throw error;
   }
 };
+
+export function getIngestedSourceUrls(): string[] {
+  if (config.vector_db.provider === 'pinecone') {
+    return [];
+  }
+
+  const urls = new Set<string>();
+  for (const vector of localVectors) {
+    const url = vector.metadata?.source_url;
+    if (typeof url === 'string' && url.trim().length > 0) {
+      urls.add(url);
+    }
+  }
+  return Array.from(urls).sort();
+}

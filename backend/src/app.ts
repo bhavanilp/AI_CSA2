@@ -2,9 +2,10 @@ import express, { Express } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import { config } from './config/index';
-import { initializeDatabase } from './config/database';
+import { initializeDatabase, query } from './config/database';
+import crypto from 'crypto';
 import { initializeRedis } from './config/redis';
-import { initializePinecone } from './config/vectorDb';
+import { initializePinecone, getIngestedSourceUrls } from './config/vectorDb';
 import { initializeOpenAI } from './services/llmService';
 import { errorHandler } from './middleware/errorHandler';
 import logger from './utils/logger';
@@ -33,6 +34,25 @@ export const initializeApp = async (): Promise<Express> => {
     await initializePinecone();
     initializeOpenAI();
     logger.info('All services initialized successfully');
+    // Sync persisted vector store URLs into in-memory sources table
+    try {
+      const urls = getIngestedSourceUrls();
+      if (urls.length > 0) {
+        for (const url of urls) {
+          const name = url.replace(/^https?:\/\//, '').replace(/\//g, '_');
+          const hash = crypto.createHash('sha1').update(url).digest('hex').slice(0, 12);
+          const id = `vs-${hash}`;
+          await query(
+            `INSERT INTO sources (id, organization_id, name, source_type, config, status, created_at, updated_at)
+             VALUES ($1, $2, $3, $4, $5, 'indexed', NOW(), NOW()) ON CONFLICT DO NOTHING`,
+            [id, 'default', name, 'website', JSON.stringify({ url })]
+          );
+        }
+        logger.info(`Synced ${urls.length} vector store URL(s) to sources table`);
+      }
+    } catch (syncErr) {
+      logger.warn(`Could not sync vector store URLs to sources: ${syncErr}`);
+    }
   } catch (error) {
     logger.error(`Service initialization failed: ${error}`);
     throw error;

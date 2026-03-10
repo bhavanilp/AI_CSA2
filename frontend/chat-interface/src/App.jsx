@@ -53,9 +53,23 @@ function App() {
         })
         setToken(response.data.access_token)
         addLog('auth', 'Successfully authenticated as admin@aicsa.local')
+
+        let startupUrls = []
+        try {
+          const urlsResponse = await axios.get('/api/chat/ingested-urls')
+          startupUrls = urlsResponse.data.urls || []
+          addLog('ingestion', 'Loaded ingested URLs at startup', { count: startupUrls.length, urls: startupUrls })
+        } catch (urlsError) {
+          addLog('error', 'Could not load startup ingested URLs', urlsError.message)
+        }
+
+        const startupUrlsMessage = startupUrls.length > 0
+          ? `\n\n📚 Ingested URLs currently loaded:\n${startupUrls.map((url, idx) => `${idx + 1}. ${url}`).join('\n')}`
+          : '\n\n📚 No ingested URLs are loaded yet. Ingest one using the URL box below.'
+
         setMessages([{
           role: 'assistant',
-          content: '👋 Hello! I\'m your AI Customer Support Agent. You can:\n\n1. **Ingest Wikipedia URLs** - The Hyderabad Wikipedia page is pre-filled\n2. **Ask me questions** about the ingested content\n\nCheck the "📊 Activity Log" tab to see ingestion details and LLM prompts!',
+          content: '👋 Hello! I\'m your AI Customer Support Agent. You can:\n\n1. **Ingest Wikipedia URLs** - The Hyderabad Wikipedia page is pre-filled\n2. **Ask me questions** about the ingested content\n\nCheck the "📊 Activity Log" tab to see ingestion details and LLM prompts!' + startupUrlsMessage,
           timestamp: new Date()
         }])
       } catch (error) {
@@ -159,6 +173,8 @@ function App() {
         sources: response.data.sources || [],
         confidence: response.data.confidence,
         shouldEscalate: response.data.should_escalate,
+        usedVectorStore: response.data.used_vector_store,
+        vectorStoreNote: response.data.vector_store_note,
         timestamp: new Date()
       }
 
@@ -223,6 +239,33 @@ function App() {
               {messages.map((msg, index) => (
                 <div key={index} className={`message ${msg.role}`}>
                   <div className="message-content">
+                    {/* Non-vector-store answer badge */}
+                    {msg.role === 'assistant' && msg.usedVectorStore === false && msg.vectorStoreNote && (
+                      <div style={{
+                        background: '#fff3cd',
+                        border: '1px solid #ffc107',
+                        borderRadius: '6px',
+                        padding: '6px 10px',
+                        marginBottom: '8px',
+                        fontSize: '0.78rem',
+                        color: '#856404'
+                      }}>
+                        ⚠️ <strong>General knowledge answer</strong> — {msg.vectorStoreNote}
+                      </div>
+                    )}
+                    {msg.role === 'assistant' && msg.usedVectorStore === true && (
+                      <div style={{
+                        background: '#d4edda',
+                        border: '1px solid #28a745',
+                        borderRadius: '6px',
+                        padding: '4px 10px',
+                        marginBottom: '8px',
+                        fontSize: '0.78rem',
+                        color: '#155724'
+                      }}>
+                        ✅ Answer from vector store
+                      </div>
+                    )}
                     <div className="message-text">{msg.content}</div>
                     {msg.sources && msg.sources.length > 0 && (
                       <div className="sources">
@@ -230,7 +273,7 @@ function App() {
                         <ul>
                           {msg.sources.map((source, idx) => (
                             <li key={idx}>
-                              {source.source_name} (Score: {source.score?.toFixed(3)})
+                              {source.name || source.source_name} — Score: {source.score?.toFixed(3)}
                             </li>
                           ))}
                         </ul>

@@ -132,15 +132,26 @@ const queryInMemory = async (text: string, params: any[] = []): Promise<QueryRes
 
   if (sql.startsWith('insert into sources')) {
     const [id, organizationId, name, sourceType, sourceConfig] = params;
+
+    // ON CONFLICT DO NOTHING — skip if ID already present
+    if (sql.includes('on conflict do nothing')) {
+      const existing = memoryDb.sources.find((item) => item.id === id);
+      if (existing) {
+        return { rows: [], rowCount: 0 };
+      }
+    }
+
+    // Determine status from SQL (indexed vs pending)
+    const initialStatus = sql.includes("'indexed'") ? 'indexed' : 'pending';
     const row = {
       id,
       organization_id: organizationId,
       name,
       source_type: sourceType,
       config: sourceConfig,
-      status: 'pending',
+      status: initialStatus,
       chunk_count: 0,
-      last_indexed: null,
+      last_indexed: initialStatus === 'indexed' ? new Date().toISOString() : null,
       error_message: null,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
