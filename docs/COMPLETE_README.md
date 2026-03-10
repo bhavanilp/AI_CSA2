@@ -1,405 +1,131 @@
-# AI Customer Support Agent - Complete Codebase
+# Complete Project Overview
 
-This repository contains the complete implementation of the AI Customer Support Agent - a production-ready RAG chatbot system.
+## Summary
 
-## 🚀 Quick Start
+The AI Customer Support Agent is a local-first support assistant platform built around a retrieval-augmented generation flow.
 
-### Prerequisites
-- Node.js 18+
-- npm or yarn
-- PostgreSQL 13+
-- Redis 7+
-- Docker & Docker Compose (optional)
+The current development shape of the project is:
 
-### 1. Clone & Setup
+- local Ollama models for inference and embeddings
+- persisted local vector store by default
+- PostgreSQL-optional local development flow
+- admin dashboard for operations and review
+- chat interface for ingestion, conversations, and runtime visibility
 
-```bash
-# Clone repository
-git clone https://github.com/yourorg/ai-customer-support-agent.git
-cd ai-customer-support-agent
+## Running applications
 
-# Copy example env
-cp backend/.env.example backend/.env
+### Backend API
 
-# Edit backend/.env with your API keys:
-# - OPENAI_API_KEY
-# - PINECONE_API_KEY
+- Port: `3000`
+- Stack: Express + TypeScript
+- Responsibilities:
+  - auth
+  - ingestion
+  - vector retrieval
+  - answer generation
+  - escalation rules
+  - metrics and admin APIs
+
+### Admin Dashboard
+
+- Port: `3001`
+- Stack: Next.js 14 + Tailwind
+- Responsibilities:
+  - login
+  - metrics overview
+  - knowledge-source visibility
+  - conversation review and transcript inspection
+  - escalation rule updates
+  - local settings and system health
+
+### Chat Interface
+
+- Port: `5173`
+- Stack: React + Vite
+- Responsibilities:
+  - URL ingestion
+  - asking questions against ingested content
+  - showing activity logs
+  - showing vector-store vs fallback answer state
+
+## Core flow
+
+1. Admin or operator ingests a URL.
+2. Backend extracts content and creates embeddings.
+3. Vectors are persisted to the local vector-store JSON file.
+4. Startup reloads vectors and reconstructs dashboard source visibility.
+5. User question is embedded and compared against stored chunks.
+6. If a relevant match exists, the answer uses vector context.
+7. If no relevant match exists, the system falls back to a general LLM answer and labels it accordingly.
+
+## Current defaults
+
+### LLM
+
+- provider: Ollama
+- model: `qwen:latest`
+
+### Embeddings
+
+- model: `nomic-embed-text:latest`
+
+### Vector store
+
+- provider: `local`
+- persisted file: `backend/data/local-vector-store.json`
+
+### Relevance threshold
+
+- `0.60`
+
+## Developer workflow
+
+### Start everything
+
+```powershell
+.\start-all.ps1
 ```
 
-### 2. Start Services (Docker)
+### Build everything
 
-```bash
-# Start PostgreSQL, Redis, and Backend
-docker-compose up
+```powershell
+Set-Location backend
+npm run build
 
-# In another terminal, initialize database
-docker-compose exec backend npm run db:migrate
+Set-Location ..\frontend\admin-dashboard
+npm run build
+
+Set-Location ..\chat-interface
+npm run build
 ```
 
-### 3. Access the System
+### Run all automated tests
 
-- **Backend API:** http://localhost:3000
-- **Health Check:** http://localhost:3000/api/health
-- **Chat Widget:** Build from `frontend/chat-widget`
-- **Admin Dashboard:** Build from `frontend/admin-dashboard`
-
-## 📁 Project Structure
-
-```
-ai-customer-support-agent/
-├── backend/                    # Express.js API server
-│   ├── src/
-│   │   ├── api/               # Route handlers
-│   │   ├── services/          # Business logic
-│   │   ├── config/            # Configuration
-│   │   ├── middleware/        # Express middleware
-│   │   └── utils/             # Utilities
-│   ├── package.json
-│   ├── tsconfig.json
-│   ├── .env.example
-│   └── Dockerfile
-│
-├── frontend/
-│   ├── chat-widget/           # Embeddable React widget
-│   │   ├── src/
-│   │   ├── dist/              # Built widget
-│   │   └── package.json
-│   │
-│   └── admin-dashboard/       # Next.js admin panel
-│       ├── app/
-│       ├── components/
-│       ├── lib/
-│       └── package.json
-│
-├── docs/                       # Documentation
-│   ├── PRD.md
-│   ├── COMPONENT_SPECS.md
-│   └── TECH_STACK_SETUP.md
-│
-├── architecture/               # Architecture documentation
-│   ├── ARCHITECTURE.md
-│   └── DATABASE_SCHEMA.md
-│
-├── scripts/                    # Database & utility scripts
-│   └── setup-db.sql
-│
-├── docker-compose.yml
-├── .github/                    # GitHub Actions CI/CD
-├── SETUP.md                    # Detailed setup guide
-└── README.md                   # This file
-```
-
-## 🔌 API Endpoints
-
-### Chat Endpoints
-
-**Send Message**
-```bash
-POST /api/chat/message
-Content-Type: application/json
-
-{
-  "conversation_id": "conv_123",
-  "message": "How do I reset my password?",
-  "session_id": "sess_xyz"
-}
-```
-
-**Escalate to Human**
-```bash
-POST /api/chat/escalate
-Content-Type: application/json
-
-{
-  "conversation_id": "conv_123",
-  "user_name": "John Doe",
-  "user_email": "john@example.com",
-  "message": "This is urgent"
-}
-```
-
-### Admin Endpoints (Require JWT)
-
-**Get Sources**
-```bash
-GET /api/admin/sources
-Authorization: Bearer <token>
-```
-
-**Get Conversations**
-```bash
-GET /api/admin/conversations?limit=50&offset=0
-Authorization: Bearer <token>
-```
-
-**Get Metrics**
-```bash
-GET /api/admin/metrics
-Authorization: Bearer <token>
-```
-
-**Get Escalation Rules**
-```bash
-GET /api/admin/escalation-rules
-Authorization: Bearer <token>
-```
-
-### Auth Endpoints
-
-**Login**
-```bash
-POST /api/auth/login
-Content-Type: application/json
-
-{
-  "email": "admin@example.com",
-  "password": "password"
-}
-```
-
-**Refresh Token**
-```bash
-POST /api/auth/refresh
-Content-Type: application/json
-
-{
-  "refresh_token": "<token>"
-}
-```
-
-## 📊 Backend Architecture
-
-### Core Components
-
-1. **Chat/RAG Orchestrator** (`src/services/chatService.ts`)
-   - Processes user queries
-   - Retrieves relevant context from vector DB
-   - Generates answers via LLM
-   - Handles escalation logic
-
-2. **LLM Integration** (`src/services/llmService.ts`)
-   - OpenAI API integration
-   - Embedding generation
-   - Answer generation
-   - Confidence scoring
-
-3. **Vector Database** (`src/config/vectorDb.ts`)
-   - Pinecone integration
-   - Semantic search
-   - Chunk storage and retrieval
-
-4. **Database** (`src/config/database.ts`)
-   - PostgreSQL connection pool
-   - Tables for conversations, sources, escalations, etc.
-
-5. **Authentication** (`src/middleware/auth.ts`)
-   - JWT-based auth
-   - Role-based access control
-
-## 🎨 Frontend Architecture
-
-### Chat Widget (`frontend/chat-widget/`)
-
-- **Tech:** Vanilla TypeScript + Vite
-- **Distribution:** UMD bundle (`dist/aicsa-widget.js`)
-- **Usage:** Embed on any website via script tag
-
-#### Widget Features:
-- 💬 Real-time messaging
-- 📱 Responsive design
-- 🎨 Customizable theming
-- 📝 Message history
-- 🚀 Escalation to human agents
-- ⚡ Zero dependencies (except axios)
-
-#### Initialization:
-```javascript
-<script src="https://your-cdn.com/aicsa-widget.js"></script>
-<script>
-  const widget = new AICSAWidget({
-    apiEndpoint: 'https://api.example.com',
-    organizationId: 'org_123',
-    theme: {
-      primaryColor: '#007bff',
-      welcomeMessage: 'Hi! How can we help?'
-    }
-  });
-  widget.init();
-</script>
-```
-
-### Admin Dashboard (`frontend/admin-dashboard/`)
-
-- **Tech:** Next.js 14 + React 18 + Tailwind CSS
-- **Pages:**
-  - `/auth/login` - Authentication
-  - `/dashboard` - Overview & metrics
-  - `/dashboard/sources` - Knowledge source management
-  - `/dashboard/conversations` - Chat logs & feedback
-  - `/dashboard/escalation-rules` - Rule configuration
-  - `/dashboard/settings` - System settings
-
-#### Features:
-- 📈 Real-time analytics
-- 📚 Source upload & indexing
-- 💬 Conversation review & feedback
-- ⚙️ Escalation rule management
-- 🔐 Role-based access control
-
-## 🔧 Configuration
-
-### Backend Environment Variables
-
-```bash
-# Server
-NODE_ENV=development|production
-BACKEND_PORT=3000
-LOG_LEVEL=info|debug|error
-
-# Database
-DATABASE_URL=postgresql://user:pass@localhost:5432/aicsa_db
-DB_POOL_SIZE=20
-
-# Vector DB (Pinecone)
-VECTOR_DB_PROVIDER=pinecone
-PINECONE_API_KEY=your_key
-PINECONE_ENVIRONMENT=us-west-2
-PINECONE_INDEX_NAME=aicsa-prod
-
-# LLM (OpenAI)
-LLM_PROVIDER=openai
-OPENAI_API_KEY=sk-your_key
-OPENAI_MODEL=gpt-4-turbo
-EMBEDDING_MODEL=text-embedding-3-small
-
-# RAG Configuration
-RETRIEVAL_TOP_K=5
-CONFIDENCE_THRESHOLD=0.6
-MAX_CONTEXT_TOKENS=2000
-
-# Authentication
-JWT_SECRET=your_secret_key
-JWT_EXPIRY=900
-
-# Email / Escalation
-SMTP_HOST=smtp.gmail.com
-ESCALATION_EMAIL=support@company.com
-```
-
-### Frontend Environment Variables
-
-```bash
-# .env.local (Chat Widget & Admin Dashboard)
-NEXT_PUBLIC_API_ENDPOINT=http://localhost:3000
-```
-
-## 🗄️ Database Schema
-
-Key tables:
-- `organizations` - Tenant data
-- `admin_users` - Team members
-- `conversations` - Chat history
-- `sources` - Knowledge bases
-- `escalations` - Support tickets
-- `escalation_rules` - Auto-escalation config
-- `settings` - Organization settings
-
-See `architecture/DATABASE_SCHEMA.md` for full schema.
-
-## 🧪 Testing
-
-### Backend Tests
-
-```bash
-cd backend
-npm test              # Run unit tests
-npm run test:integration  # Run integration tests
-```
-
-### Frontend Tests
-
-```bash
-cd frontend/chat-widget
+```powershell
+Set-Location backend
 npm test
 
-cd frontend/admin-dashboard
+Set-Location ..\frontend\admin-dashboard
+npm test
+
+Set-Location ..\chat-interface
 npm test
 ```
 
-## 🚢 Deployment
+## Current regression protections
 
-### Docker Build
+The automated tests now cover the highest-value regressions fixed in this repository:
 
-```bash
-# Build backend
-docker build -t aicsa-backend:latest ./backend
+- vector-store answer path
+- non-vector fallback answer path
+- timeout-safe LLM failure handling
+- dashboard transcript drill-down
+- dashboard settings persistence
+- chat startup URL display
+- chat fallback badge rendering
 
-# Build chat widget
-cd frontend/chat-widget && npm run build
-# Upload dist/aicsa-widget.js to CDN
+## Known boundaries
 
-# Build admin dashboard
-cd frontend/admin-dashboard && npm run build
-# Deploy to Vercel or hosting provider
-```
-
-### Environment Setup
-
-1. **Backend:** Deploy to AWS ECS, Heroku, or your cloud provider
-2. **Frontend Widget:** Host on CDN (CloudFront, CloudFlare, etc.)
-3. **Admin Dashboard:** Deploy to Vercel, Netlify, or your host
-4. **Database:** RDS PostgreSQL instance
-5. **Cache:** ElastiCache Redis
-6. **Vector DB:** Pinecone managed service
-
-## 📚 Documentation
-
-- **[PRD](docs/PRD.md)** - Product requirements & specifications
-- **[Architecture](architecture/ARCHITECTURE.md)** - System design & components
-- **[Component Specs](docs/COMPONENT_SPECS.md)** - API & UI specifications
-- **[Database Schema](architecture/DATABASE_SCHEMA.md)** - SQL schema
-- **[Setup Guide](SETUP.md)** - Detailed setup instructions
-- **[Tech Stack](docs/TECH_STACK_SETUP.md)** - Technology choices & rationale
-
-## 🔐 Security
-
-- ✅ HTTPS/TLS for all traffic
-- ✅ JWT-based authentication
-- ✅ Role-based access control (RBAC)
-- ✅ Encrypted data at rest & in transit
-- ✅ Input validation & sanitization
-- ✅ CORS protection
-- ✅ Rate limiting
-- ✅ GDPR-compliant (no training on user data)
-
-## 📈 Metrics & Success KPIs
-
-- **First Contact Resolution (FCR):** ≥ 80%
-- **Response Accuracy:** ≥ 95%
-- **Response Time:** < 2 seconds
-- **Escalation Rate:** < 20%
-- **CSAT:** ≥ 4.5/5
-- **Ticket Reduction:** ≥ 40% in 3-6 months
-
-## 🤝 Contributing
-
-1. Create a feature branch
-2. Make your changes
-3. Write tests
-4. Submit a pull request
-
-See GitHub issues for open tasks.
-
-## 📝 License
-
-MIT License - See LICENSE file for details
-
-## 🆘 Support
-
-- **Documentation:** See `docs/` folder
-- **Issues:** GitHub Issues
-- **Questions:** team@example.com
-
----
-
-**Built with ❤️ - AI Customer Support Agent v1.0.0**
+- The local development environment still uses an in-memory DB fallback when PostgreSQL is unavailable.
+- The admin dashboard is operational, but it is not yet a multi-tenant production console.
+- The `frontend/chat-widget` package exists in the repository but is not the primary UI used in the current startup flow.
