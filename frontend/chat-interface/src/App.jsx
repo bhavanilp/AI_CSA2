@@ -149,48 +149,173 @@ function App() {
     setInputMessage('')
     setIsLoading(true)
 
+    // Add an empty assistant message that we will fill token-by-token
+    const placeholderId = Date.now()
+    setMessages(prev => [...prev, {
+      id: placeholderId,
+      role: 'assistant',
+      content: '',
+      streaming: true,
+      timestamp: new Date()
+    }])
+
     try {
-      const response = await axios.post('/api/chat/message', {
-        conversation_id: conversationId,
-        session_id: sessionId,
-        message: inputMessage
+      const response = await fetch('/api/chat/message/stream', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({
+          conversation_id: conversationId,
+          session_id: sessionId,
+          message: inputMessage,
+        }),
       })
 
-      if (response.data.conversation_id) {
-        setConversationId(response.data.conversation_id)
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`)
       }
 
-      addLog('chat', 'LLM Response received', {
-        confidence: (response.data.confidence * 100).toFixed(1) + '%',
-        sources: response.data.sources.length,
-        escalation: response.data.should_escalate,
-        response_preview: response.data.content.substring(0, 100) + '...'
-      })
+      const reader = response.body.getReader()
+      const decoder = new TextDecoder()
+      let buffer = ''
+      let meta = null
 
-      const assistantMessage = {
-        role: 'assistant',
-        content: response.data.content,
-        sources: response.data.sources || [],
-        confidence: response.data.confidence,
-        shouldEscalate: response.data.should_escalate,
-        usedVectorStore: response.data.used_vector_store,
-        vectorStoreNote: response.data.vector_store_note,
-        timestamp: new Date()
+      const applyMeta = (m) => {
+        if (m.conversation_id) setConversationId(m.conversation_id)
+        meta = m
+        setMessages(prev =>
+          prev.map(msg =>
+            msg.id === placeholderId
+              ? {
+                  ...msg,
+                  sources: m.sources || [],
+                  shouldEscalate: m.should_escalate,
+                  usedVectorStore: m.used_vector_store,
+                  vectorStoreNote: m.vector_store_note,
+                }
+              : msg
+          )
+        )
       }
 
-      setMessages(prev => [...prev, assistantMessage])
+      while (true) {
+        const { done, value } = await reader.read()
+        if (done) break
+
+        buffer += decoder.decode(value, { stream: true })
+
+        // Parse SSE lines from buffer
+        const parts = buffer.split('\n\n')
+        buffer = parts.pop() ?? ''
+
+        for (const part of parts) {
+          let eventName = 'message'
+          let dataLine = ''
+          for (const line of part.split('\n')) {
+            if (line.startsWith('event: ')) eventName = line.slice(7).trim()
+            if (line.startsWith('data: ')) dataLine = line.slice(6).trim()
+          }
+
+          if (!dataLine) continue
+          let parsed
+          try { parsed = JSON.parse(dataLine) } catch { continue }
+
+          if (eventName === 'meta') {
+            applyMeta(parsed)
+          } else if (eventName === 'think_token') {
+            // Native thinking field (qwen3-style models)
+            setMessages(prev =>
+              prev.map(msg =>
+                msg.id === placeholderId
+                  ? { ...msg, nativeThinking: (msg.nativeThinking || '') + (parsed.token || '') }
+                  : msg
+              )
+            )
+          } else if (eventName === 'token') {
+            setMessages(prev =>
+              prev.map(msg =>
+                msg.id === placeholderId
+                  ? { ...msg, content: msg.content + (parsed.token || '') }
+                  : msg
+              )
+            )
+          } else if (eventName === 'done') {
+            const confidence = parsed.confidence ?? 0
+            setMessages(prev =>
+              prev.map(msg =>
+                msg.id === placeholderId
+                  ? { ...msg, streaming: false, confidence }
+                  : msg
+              )
+            )
+            addLog('chat', 'LLM Response received', {
+              confidence: (confidence * 100).toFixed(1) + '%',
+              sources: meta?.sources?.length ?? 0,
+              escalation: meta?.should_escalate,
+            })
+          } else if (eventName === 'error') {
+            setMessages(prev =>
+              prev.map(msg =>
+                msg.id === placeholderId
+                  ? { ...msg, streaming: false, content: `❌ ${parsed.message || 'Streaming error'}` }
+                  : msg
+              )
+            )
+          }
+        }
+      }
     } catch (error) {
       addLog('error', 'Chat request failed', {
-        error: error.response?.data?.error || error.message
+        error: error.message
       })
-      setMessages(prev => [...prev, {
-        role: 'assistant',
-        content: `❌ Error: ${error.response?.data?.error || error.message}`,
-        timestamp: new Date()
-      }])
+      setMessages(prev =>
+        prev.map(msg =>
+          msg.id === placeholderId
+            ? { ...msg, streaming: false, content: `❌ Error: ${error.message}` }
+            : msg
+        )
+      )
     } finally {
       setIsLoading(false)
     }
+  }
+
+  const parseMessageContent = (msg) => {
+    // Native thinking (from think_token SSE events) takes priority
+    if (msg.nativeThinking) {
+      return { thinking: msg.nativeThinking, answer: msg.content, stillThinking: false }
+    }
+    // Parse inline <think>...</think> from response tokens
+    const raw = msg.content || ''
+    const openIdx = raw.indexOf('<think>')
+    if (openIdx === -1) return { thinking: '', answer: raw, stillThinking: false }
+    const closeIdx = raw.indexOf('</think>')
+    if (closeIdx === -1) {
+      // Still inside the thinking block
+      return { thinking: raw.slice(openIdx + 7), answer: '', stillThinking: true }
+    }
+    return {
+      thinking: raw.slice(openIdx + 7, closeIdx),
+      answer: raw.slice(closeIdx + 8).trimStart(),
+      stillThinking: false,
+    }
+  }
+
+  const formatSourceConfidence = (source) => {
+    if (typeof source.confidence_min === 'number' && typeof source.confidence_max === 'number') {
+      if (Math.abs(source.confidence_max - source.confidence_min) < 0.0005) {
+        return source.confidence_max.toFixed(3)
+      }
+      return `${source.confidence_min.toFixed(3)}-${source.confidence_max.toFixed(3)}`
+    }
+
+    if (typeof source.score === 'number') {
+      return source.score.toFixed(3)
+    }
+
+    return 'N/A'
   }
 
   return (
@@ -236,8 +361,10 @@ function App() {
           {/* Chat Messages */}
           <div className="chat-container">
             <div className="messages">
-              {messages.map((msg, index) => (
-                <div key={index} className={`message ${msg.role}`}>
+              {messages.map((msg, index) => {
+                const parsed = msg.role === 'assistant' ? parseMessageContent(msg) : null
+                return (
+                <div key={msg.id ?? index} className={`message ${msg.role}`}>
                   <div className="message-content">
                     {/* Non-vector-store answer badge */}
                     {msg.role === 'assistant' && msg.usedVectorStore === false && msg.vectorStoreNote && (
@@ -266,20 +393,36 @@ function App() {
                         ✅ Answer from vector store
                       </div>
                     )}
-                    <div className="message-text">{msg.content}</div>
-                    {msg.sources && msg.sources.length > 0 && (
+                    {/* Thinking section (collapsible) */}
+                    {msg.role === 'assistant' && parsed?.thinking && (
+                      <details className="thinking-block" open={parsed.stillThinking}>
+                        <summary>
+                          💭 {parsed.stillThinking ? 'Thinking…' : 'View thinking'}
+                        </summary>
+                        <div className="thinking-content">
+                          {parsed.thinking}
+                          {parsed.stillThinking && <span className="streaming-cursor" />}
+                        </div>
+                      </details>
+                    )}
+                    <div className="message-text">
+                      {msg.role === 'assistant' ? parsed?.answer : msg.content}
+                      {msg.streaming && !parsed?.stillThinking && <span className="streaming-cursor" />}
+                    </div>
+                    {!msg.streaming && msg.sources && msg.sources.length > 0 && (
                       <div className="sources">
                         <strong>📚 Sources:</strong>
                         <ul>
                           {msg.sources.map((source, idx) => (
                             <li key={idx}>
-                              {source.name || source.source_name} — Score: {source.score?.toFixed(3)}
+                              {source.name || source.source_name} — Confidence: {formatSourceConfidence(source)}
+                              {source.match_count > 1 ? ` (${source.match_count} matches)` : ''}
                             </li>
                           ))}
                         </ul>
                       </div>
                     )}
-                    {msg.confidence !== undefined && (
+                    {!msg.streaming && msg.confidence !== undefined && (
                       <div className="metadata">
                         Confidence: {(msg.confidence * 100).toFixed(1)}%
                         {msg.shouldEscalate && ' ⚠️ Escalation recommended'}
@@ -287,11 +430,12 @@ function App() {
                     )}
                   </div>
                   <div className="message-time">
-                    {msg.timestamp.toLocaleTimeString()}
+                    {msg.timestamp instanceof Date ? msg.timestamp.toLocaleTimeString() : ''}
                   </div>
                 </div>
-              ))}
-              {isLoading && (
+                )
+              })}
+              {isLoading && !messages.some(m => m.streaming) && (
                 <div className="message assistant loading">
                   <div className="message-content">Thinking...</div>
                 </div>

@@ -20,6 +20,9 @@ interface ConversationSource {
   name?: string;
   url?: string;
   score?: number;
+  confidence_min?: number;
+  confidence_max?: number;
+  match_count?: number;
 }
 
 interface ConversationMessage {
@@ -158,6 +161,21 @@ export default function ConversationsPage() {
 
   const canGoPrev = offset > 0;
   const canGoNext = offset + PAGE_SIZE < total;
+
+  const formatConfidence = (src: ConversationSource) => {
+    if (typeof src.confidence_min === 'number' && typeof src.confidence_max === 'number') {
+      if (Math.abs(src.confidence_max - src.confidence_min) < 0.0005) {
+        return src.confidence_max.toFixed(2);
+      }
+      return `${src.confidence_min.toFixed(2)}-${src.confidence_max.toFixed(2)}`;
+    }
+
+    if (typeof src.score === 'number') {
+      return src.score.toFixed(2);
+    }
+
+    return null;
+  };
 
   return (
     <div className="space-y-6">
@@ -324,7 +342,10 @@ export default function ConversationsPage() {
                           {msg.sources.map((src, sIdx) => (
                             <div key={`${src.source_id || sIdx}-${sIdx}`} className="text-xs text-gray-700">
                               <span className="font-medium">{src.name || 'Source'}</span>
-                              {src.score !== undefined && <span className="text-gray-500"> ({src.score.toFixed(2)})</span>}
+                              {formatConfidence(src) && <span className="text-gray-500"> (Confidence: {formatConfidence(src)})</span>}
+                              {typeof src.match_count === 'number' && src.match_count > 1 && (
+                                <span className="text-gray-500"> ({src.match_count} matches)</span>
+                              )}
                               {src.url && (
                                 <a
                                   href={src.url}

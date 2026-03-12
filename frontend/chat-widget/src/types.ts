@@ -6,6 +6,10 @@ export interface Message {
     source_id: string;
     name: string;
     url?: string;
+    score?: number;
+    confidence_min?: number;
+    confidence_max?: number;
+    match_count?: number;
   }>;
 }
 

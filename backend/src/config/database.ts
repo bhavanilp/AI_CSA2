@@ -1,4 +1,6 @@
 import bcryptjs from 'bcryptjs';
+import { promises as fs } from 'fs';
+import path from 'path';
 import { Pool, PoolClient } from 'pg';
 import { config } from '../config/index';
 import logger from '../utils/logger';
@@ -13,6 +15,46 @@ const memoryDb = {
   conversations: [] as any[],
   sources: [] as any[],
   escalationRules: [] as any[],
+};
+
+const MEMORY_DB_PATH = path.resolve(process.cwd(), 'data', 'local-memory-db.json');
+
+type MemoryDbSnapshot = {
+  adminUsers: any[];
+  conversations: any[];
+  sources: any[];
+  escalationRules: any[];
+  updated_at: string;
+};
+
+const saveMemoryDbToFile = async (): Promise<void> => {
+  const snapshot: MemoryDbSnapshot = {
+    adminUsers: memoryDb.adminUsers,
+    conversations: memoryDb.conversations,
+    sources: memoryDb.sources,
+    escalationRules: memoryDb.escalationRules,
+    updated_at: new Date().toISOString(),
+  };
+
+  await fs.mkdir(path.dirname(MEMORY_DB_PATH), { recursive: true });
+  await fs.writeFile(MEMORY_DB_PATH, JSON.stringify(snapshot, null, 2), 'utf8');
+};
+
+const loadMemoryDbFromFile = async (): Promise<void> => {
+  try {
+    const raw = await fs.readFile(MEMORY_DB_PATH, 'utf8');
+    const parsed = JSON.parse(raw) as Partial<MemoryDbSnapshot>;
+
+    memoryDb.adminUsers = Array.isArray(parsed.adminUsers) ? parsed.adminUsers : [];
+    memoryDb.conversations = Array.isArray(parsed.conversations) ? parsed.conversations : [];
+    memoryDb.sources = Array.isArray(parsed.sources) ? parsed.sources : [];
+    memoryDb.escalationRules = Array.isArray(parsed.escalationRules) ? parsed.escalationRules : [];
+  } catch (error: any) {
+    if (error.code === 'ENOENT') {
+      return;
+    }
+    throw error;
+  }
 };
 
 const ensureSeedData = async (): Promise<void> => {
@@ -43,6 +85,18 @@ const ensureSeedData = async (): Promise<void> => {
   }
 };
 
+const persistInMemoryMutation = async (): Promise<void> => {
+  if (!useInMemoryDb) {
+    return;
+  }
+
+  try {
+    await saveMemoryDbToFile();
+  } catch (error) {
+    logger.warn(`Failed to persist in-memory DB snapshot: ${error}`);
+  }
+};
+
 const queryInMemory = async (text: string, params: any[] = []): Promise<QueryResult> => {
   const sql = text.replace(/\s+/g, ' ').trim().toLowerCase();
 
@@ -63,6 +117,7 @@ const queryInMemory = async (text: string, params: any[] = []): Promise<QueryRes
       return { rows: [], rowCount: 0 };
     }
     user.last_login = new Date().toISOString();
+    await persistInMemoryMutation();
     return { rows: [], rowCount: 1 };
   }
 
@@ -79,11 +134,14 @@ const queryInMemory = async (text: string, params: any[] = []): Promise<QueryRes
     const existing = memoryDb.conversations.find((item) => item.id === id);
 
     if (existing) {
-      const botMessage = Array.isArray(messages) ? messages[messages.length - 1] : null;
-      if (botMessage) {
-        existing.messages.push(botMessage);
+      const nextMessages = Array.isArray(messages) ? messages : [];
+      if (!Array.isArray(existing.messages)) {
+        existing.messages = [];
       }
-      existing.message_count = (existing.message_count || 0) + 1;
+      if (nextMessages.length > 0) {
+        existing.messages.push(...nextMessages);
+      }
+      existing.message_count = (existing.message_count || 0) + nextMessages.length;
       existing.was_escalated = wasEscalated;
       existing.escalation_reason = escalationReason || existing.escalation_reason;
       existing.updated_at = new Date().toISOString();
@@ -106,6 +164,7 @@ const queryInMemory = async (text: string, params: any[] = []): Promise<QueryRes
       });
     }
 
+    await persistInMemoryMutation();
     return { rows: [], rowCount: 1 };
   }
 
@@ -157,6 +216,7 @@ const queryInMemory = async (text: string, params: any[] = []): Promise<QueryRes
       updated_at: new Date().toISOString(),
     };
     memoryDb.sources.push(row);
+    await persistInMemoryMutation();
     return {
       rows: [
         {
@@ -175,6 +235,7 @@ const queryInMemory = async (text: string, params: any[] = []): Promise<QueryRes
     const [id, organizationId] = params;
     const before = memoryDb.sources.length;
     memoryDb.sources = memoryDb.sources.filter((item) => !(item.id === id && item.organization_id === organizationId));
+    await persistInMemoryMutation();
     return { rows: [], rowCount: before - memoryDb.sources.length };
   }
 
@@ -203,6 +264,7 @@ const queryInMemory = async (text: string, params: any[] = []): Promise<QueryRes
     row.feedback_is_correct = isCorrect;
     row.feedback_comment = comment;
     row.updated_at = new Date().toISOString();
+    await persistInMemoryMutation();
     return { rows: [{ id: row.id }], rowCount: 1 };
   }
 
@@ -251,6 +313,7 @@ const queryInMemory = async (text: string, params: any[] = []): Promise<QueryRes
       row.escalation_email = escalationEmail;
     }
     row.updated_at = new Date().toISOString();
+    await persistInMemoryMutation();
     return { rows: [{ id: row.id, updated_at: row.updated_at }], rowCount: 1 };
   }
 
@@ -275,8 +338,11 @@ export const initializeDatabase = async (): Promise<void> => {
     logger.info('Database connected successfully');
   } catch (error) {
     useInMemoryDb = true;
+    await loadMemoryDbFromFile();
     await ensureSeedData();
+    await saveMemoryDbToFile();
     logger.warn(`Database unavailable. Falling back to in-memory DB: ${error}`);
+    logger.info(`In-memory DB snapshots are persisted at ${MEMORY_DB_PATH}`);
   }
 };
 

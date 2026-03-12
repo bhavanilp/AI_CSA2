@@ -210,7 +210,23 @@ export class AICSAWidget {
       const sourcesEl = document.createElement('div');
       sourcesEl.className = 'aicsa-source';
       sourcesEl.innerHTML = message.sources
-        .map((s) => `<a href="${s.url || '#'}" target="_blank">${s.name}</a>`)
+        .map((s) => {
+          const min = typeof s.confidence_min === 'number' ? s.confidence_min : undefined;
+          const max = typeof s.confidence_max === 'number' ? s.confidence_max : undefined;
+          const fallback = typeof s.score === 'number' ? s.score : undefined;
+
+          let confidenceText = '';
+          if (typeof min === 'number' && typeof max === 'number') {
+            confidenceText =
+              Math.abs(max - min) < 0.0005
+                ? ` (${max.toFixed(2)})`
+                : ` (${min.toFixed(2)}-${max.toFixed(2)})`;
+          } else if (typeof fallback === 'number') {
+            confidenceText = ` (${fallback.toFixed(2)})`;
+          }
+
+          return `<a href="${s.url || '#'}" target="_blank">${s.name}${confidenceText}</a>`;
+        })
         .join(' • ');
       contentEl.appendChild(sourcesEl);
     }

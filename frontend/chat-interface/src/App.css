@@ -9,6 +9,65 @@
   max-height: 800px;
 }
 
+/* Blinking cursor shown while tokens are streaming */
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0; }
+}
+
+.streaming-cursor {
+  display: inline-block;
+  width: 8px;
+  height: 1em;
+  background: currentColor;
+  margin-left: 2px;
+  vertical-align: text-bottom;
+  border-radius: 1px;
+  animation: blink 0.8s step-start infinite;
+}
+
+/* Collapsible thinking block */
+.thinking-block {
+  background: #f5f0ff;
+  border: 1px solid #c4a8ff;
+  border-radius: 8px;
+  margin-bottom: 8px;
+  font-size: 0.82rem;
+  overflow: hidden;
+}
+
+.thinking-block summary {
+  cursor: pointer;
+  padding: 6px 10px;
+  color: #6a3fbf;
+  font-weight: 600;
+  user-select: none;
+  list-style: none;
+}
+
+.thinking-block summary::-webkit-details-marker { display: none; }
+
+.thinking-block summary::before {
+  content: '▶ ';
+  font-size: 0.7rem;
+  transition: transform 0.2s;
+}
+
+.thinking-block[open] summary::before {
+  content: '▼ ';
+}
+
+.thinking-content {
+  padding: 8px 12px;
+  border-top: 1px solid #c4a8ff;
+  color: #4a2f8a;
+  white-space: pre-wrap;
+  word-break: break-word;
+  max-height: 200px;
+  overflow-y: auto;
+  line-height: 1.5;
+}
+
 .header {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;

@@ -55,7 +55,7 @@ $backendCommand = "Set-Location '$backendPath'; " +
     "`$env:VECTOR_DB_PROVIDER='local'; " +
     "`$env:LLM_PROVIDER='ollama'; " +
     "`$env:OLLAMA_API_URL='http://localhost:11434'; " +
-    "`$env:OLLAMA_MODEL='qwen:latest'; " +
+    "`$env:OLLAMA_MODEL='qwen3:latest'; " +
     "`$env:OLLAMA_EMBEDDING_MODEL='nomic-embed-text:latest'; " +
     "npm run dev"
 

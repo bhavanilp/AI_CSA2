@@ -1,6 +1,6 @@
 import { Router, Request, Response } from 'express';
 import { v4 as uuidv4 } from 'uuid';
-import { processChat, getConversation } from '../services/chatService';
+import { processChat, getConversation, processChatStream } from '../services/chatService';
 import { getIngestedSourceUrls } from '../config/vectorDb';
 import { asyncHandler } from '../middleware/errorHandler';
 import logger from '../utils/logger';
@@ -30,6 +30,44 @@ router.post(
     res.status(200).json(response);
   })
 );
+
+// POST /api/chat/message/stream  — Server-Sent Events streaming endpoint
+router.post('/message/stream', async (req: Request, res: Response) => {
+  const { conversation_id, message, session_id } = req.body;
+  const organizationId = req.organizationId || 'default';
+
+  if (!message) {
+    res.status(400).json({ error: 'Message is required' });
+    return;
+  }
+
+  // SSE headers
+  res.setHeader('Content-Type', 'text/event-stream');
+  res.setHeader('Cache-Control', 'no-cache');
+  res.setHeader('Connection', 'keep-alive');
+  res.setHeader('X-Accel-Buffering', 'no');
+  res.flushHeaders();
+
+  const send = (event: string, data: unknown) => {
+    res.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
+  };
+
+  const chatRequest = {
+    conversation_id: conversation_id || uuidv4(),
+    user_id: session_id || uuidv4(),
+    message,
+    organization_id: organizationId,
+  };
+
+  try {
+    await processChatStream(chatRequest, send);
+  } catch (err) {
+    logger.error(`Streaming chat error: ${err}`);
+    send('error', { message: 'An error occurred while streaming the response.' });
+  } finally {
+    res.end();
+  }
+});
 
 // GET /api/chat/ingested-urls
 router.get(
