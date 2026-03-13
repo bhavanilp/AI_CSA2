@@ -293,6 +293,33 @@ const queryInMemory = async (text: string, params: any[] = []): Promise<QueryRes
     };
   }
 
+  if (
+    sql.includes('select session_id, was_escalated, feedback_rating, messages') &&
+    sql.includes('from conversations')
+  ) {
+    const [organizationId, startDate, endDate] = params;
+    const startMs = Date.parse(startDate || '');
+    const endMs = Date.parse(endDate || '');
+
+    const rows = memoryDb.conversations
+      .filter((item) => item.organization_id === organizationId)
+      .filter((item) => {
+        const createdMs = Date.parse(item.created_at || '');
+        if (Number.isNaN(createdMs)) return true;
+        if (!Number.isNaN(startMs) && createdMs < startMs) return false;
+        if (!Number.isNaN(endMs) && createdMs > endMs) return false;
+        return true;
+      })
+      .map((item) => ({
+        session_id: item.session_id,
+        was_escalated: !!item.was_escalated,
+        feedback_rating: item.feedback_rating,
+        messages: item.messages,
+      }));
+
+    return { rows, rowCount: rows.length };
+  }
+
   if (sql.includes('from escalation_rules where organization_id = $1') && sql.includes('order by created_at desc')) {
     const organizationId = params[0];
     const rows = memoryDb.escalationRules.filter((item) => item.organization_id === organizationId);

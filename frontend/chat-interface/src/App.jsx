@@ -138,11 +138,18 @@ function App() {
     e.preventDefault()
     if (!inputMessage.trim() || isLoading) return
 
+    const requestId = Date.now()
+
     const userMessage = {
+      id: requestId,
+      requestId,
       role: 'user',
       content: inputMessage,
       timestamp: new Date()
     }
+    const requestStartMs = requestId
+    const toResponseSeconds = (valueMs) => Number((valueMs / 1000).toFixed(3))
+
 
     setMessages(prev => [...prev, userMessage])
     addLog('chat', 'User query', { message: inputMessage })
@@ -150,9 +157,10 @@ function App() {
     setIsLoading(true)
 
     // Add an empty assistant message that we will fill token-by-token
-    const placeholderId = Date.now()
+    const placeholderId = requestStartMs + 1
     setMessages(prev => [...prev, {
       id: placeholderId,
+      requestId: userMessage.requestId,
       role: 'assistant',
       content: '',
       streaming: true,
@@ -243,39 +251,81 @@ function App() {
             )
           } else if (eventName === 'done') {
             const confidence = parsed.confidence ?? 0
+            const confidenceReason = parsed.confidence_reason || ''
+            const parsedResponseTimeSec = Number(parsed.response_time_sec)
+            const parsedResponseTimeMs = Number(parsed.response_time_ms)
+            const responseTimeSec = Number.isFinite(parsedResponseTimeSec)
+              ? parsedResponseTimeSec
+              : Number.isFinite(parsedResponseTimeMs)
+                ? toResponseSeconds(parsedResponseTimeMs)
+                : toResponseSeconds(Date.now() - requestStartMs)
             setMessages(prev =>
-              prev.map(msg =>
-                msg.id === placeholderId
-                  ? { ...msg, streaming: false, confidence }
-                  : msg
-              )
+              prev.map(msg => {
+                if (msg.id === placeholderId) {
+                  return {
+                    ...msg,
+                    streaming: false,
+                    confidence,
+                    confidenceReason,
+                    responseTimeSec,
+                  }
+                }
+
+                if (msg.requestId === userMessage.requestId && msg.role === 'user') {
+                  return {
+                    ...msg,
+                    responseTimeSec,
+                  }
+                }
+
+                return msg
+              })
             )
             addLog('chat', 'LLM Response received', {
               confidence: (confidence * 100).toFixed(1) + '%',
+              confidence_reason: confidenceReason,
+              response_time_sec: responseTimeSec,
               sources: meta?.sources?.length ?? 0,
               escalation: meta?.should_escalate,
             })
           } else if (eventName === 'error') {
+            const responseTimeSec = toResponseSeconds(Date.now() - requestStartMs)
             setMessages(prev =>
-              prev.map(msg =>
-                msg.id === placeholderId
-                  ? { ...msg, streaming: false, content: `❌ ${parsed.message || 'Streaming error'}` }
-                  : msg
-              )
+              prev.map(msg => {
+                if (msg.id === placeholderId) {
+                  return {
+                    ...msg,
+                    streaming: false,
+                    content: `❌ ${parsed.message || 'Streaming error'}`,
+                    responseTimeSec,
+                  }
+                }
+
+                if (msg.requestId === userMessage.requestId && msg.role === 'user') {
+                  return { ...msg, responseTimeSec }
+                }
+
+                return msg
+              })
             )
           }
         }
       }
     } catch (error) {
+      const responseTimeSec = toResponseSeconds(Date.now() - requestStartMs)
       addLog('error', 'Chat request failed', {
         error: error.message
       })
       setMessages(prev =>
-        prev.map(msg =>
-          msg.id === placeholderId
-            ? { ...msg, streaming: false, content: `❌ Error: ${error.message}` }
-            : msg
-        )
+        prev.map(msg => {
+          if (msg.id === placeholderId) {
+            return { ...msg, streaming: false, content: `❌ Error: ${error.message}`, responseTimeSec }
+          }
+          if (msg.requestId === userMessage.requestId && msg.role === 'user') {
+            return { ...msg, responseTimeSec }
+          }
+          return msg
+        })
       )
     } finally {
       setIsLoading(false)
@@ -324,13 +374,13 @@ function App() {
         <h1>🤖 AI Customer Support Agent</h1>
         <p>Powered by Ollama + Local RAG</p>
         <div className="header-tabs">
-          <button 
+          <button
             className={`tab-btn ${!showLogs ? 'active' : ''}`}
             onClick={() => setShowLogs(false)}
           >
             💬 Chat
           </button>
-          <button 
+          <button
             className={`tab-btn ${showLogs ? 'active' : ''}`}
             onClick={() => setShowLogs(true)}
           >
@@ -425,8 +475,13 @@ function App() {
                     {!msg.streaming && msg.confidence !== undefined && (
                       <div className="metadata">
                         Confidence: {(msg.confidence * 100).toFixed(1)}%
+                        {msg.confidenceReason ? ` (${msg.confidenceReason})` : ''}
+                        {typeof msg.responseTimeSec === 'number' ? ` | Response time: ${msg.responseTimeSec.toFixed(2)}s` : ''}
                         {msg.shouldEscalate && ' ⚠️ Escalation recommended'}
                       </div>
+                    )}
+                    {msg.role === 'user' && typeof msg.responseTimeSec === 'number' && (
+                      <div className="metadata">Round-trip for this request: {msg.responseTimeSec.toFixed(2)}s</div>
                     )}
                   </div>
                   <div className="message-time">

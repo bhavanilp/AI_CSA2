@@ -44,6 +44,7 @@ Coverage focus:
 
 - startup ingested URL list rendering
 - general-knowledge badge for non-vector answers
+- response-time and confidence-reason metadata rendering from streaming responses
 
 ## Build validation
 
@@ -119,6 +120,8 @@ Verify:
 - `used_vector_store` is `true`
 - response contains source records
 - answer is grounded in the ingested content
+- `response_time_sec` is present and non-negative
+- `confidence_reason` is present
 
 ## 6. Non-vector fallback query
 
@@ -132,6 +135,8 @@ Verify:
 - `used_vector_store` is `false`
 - `vector_store_note` explains why
 - answer starts with the non-vector note
+- `response_time_sec` is present and non-negative
+- `confidence_reason` explains baseline confidence
 
 ## 7. Dashboard pages
 
@@ -139,8 +144,12 @@ Open `http://localhost:3001` and verify:
 
 - login works
 - overview page loads without a blank screen
+- overview `Avg Response Time` reflects per-turn bot latency (not session lifetime)
 - sources page shows ingested URLs and source records
+- removing a URL from sources page removes it from vector store and the ingested URL list
 - conversations page lists sessions and opens transcript drawer
+- transcript drawer shows response time in seconds for each request/response turn
+- transcript drawer shows confidence score with reason for bot messages
 - escalation rules page loads and saves rule changes
 - settings page shows backend health and saved local preferences
 
@@ -152,3 +161,6 @@ Open `http://localhost:5173` and verify:
 - ingest URL action works
 - vector-store answers show the green badge
 - fallback answers show the yellow general-knowledge badge
+- each request/response turn shows response time in seconds
+- confidence displays reason text in brackets
+- no editor tab is present

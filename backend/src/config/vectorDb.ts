@@ -190,6 +190,58 @@ export const deleteVectors = async (ids: string[]): Promise<void> => {
   }
 };
 
+export const deleteVectorsBySourceUrl = async (
+  sourceUrl: string,
+  organizationId?: string,
+): Promise<number> => {
+  if (!sourceUrl || !sourceUrl.trim()) {
+    return 0;
+  }
+
+  const normalizedUrl = sourceUrl.trim();
+
+  if (config.vector_db.provider !== 'pinecone') {
+    const beforeCount = localVectors.length;
+    localVectors = localVectors.filter((item) => {
+      const itemUrl = typeof item.metadata?.source_url === 'string' ? item.metadata.source_url.trim() : '';
+      if (itemUrl !== normalizedUrl) {
+        return true;
+      }
+
+      if (!organizationId) {
+        return false;
+      }
+
+      return item.metadata?.organization_id !== organizationId;
+    });
+
+    const deletedCount = beforeCount - localVectors.length;
+    if (deletedCount > 0) {
+      await saveLocalVectorStore();
+    }
+
+    logger.info(`Deleted ${deletedCount} vectors from local store for URL ${normalizedUrl}`);
+    return deletedCount;
+  }
+
+  // Pinecone URL-level deletion depends on index filtering capabilities. Try best-effort filter delete.
+  try {
+    const index = getPineconeIndex() as any;
+    const filter: Record<string, any> = {
+      source_url: { $eq: normalizedUrl },
+    };
+    if (organizationId) {
+      filter.organization_id = { $eq: organizationId };
+    }
+    await index.deleteMany(filter);
+    logger.info(`Requested Pinecone vector deletion for URL ${normalizedUrl}`);
+    return 0;
+  } catch (error) {
+    logger.error(`Delete-by-URL error: ${error}`);
+    throw error;
+  }
+};
+
 export function getIngestedSourceUrls(): string[] {
   if (config.vector_db.provider === 'pinecone') {
     return [];

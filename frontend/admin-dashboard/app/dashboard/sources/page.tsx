@@ -17,7 +17,51 @@ export default function SourcesPage() {
   const [sources, setSources] = useState<Source[]>([]);
   const [ingestedUrls, setIngestedUrls] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [removingUrl, setRemovingUrl] = useState<string | null>(null);
   const [error, setError] = useState('');
+
+  const loadData = async (authToken: string) => {
+    const [sourcesRes, urlsRes] = await Promise.all([
+      axios.get('/api/admin/sources', {
+        headers: { Authorization: `Bearer ${authToken}` },
+        timeout: 8000,
+      }),
+      axios.get('/api/chat/ingested-urls', { timeout: 5000 }),
+    ]);
+    setSources(sourcesRes.data.sources || []);
+    setIngestedUrls(urlsRes.data.urls || []);
+  };
+
+  const handleRemoveUrl = async (url: string) => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      router.replace('/auth/login');
+      return;
+    }
+
+    const confirmed = window.confirm(`Remove this URL from the vector store?\n\n${url}`);
+    if (!confirmed) {
+      return;
+    }
+
+    try {
+      setRemovingUrl(url);
+      setError('');
+      await axios.post(
+        '/api/admin/sources/remove-url',
+        { url },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+          timeout: 10000,
+        },
+      );
+      await loadData(token);
+    } catch (err: any) {
+      setError(err.response?.data?.error || 'Failed to remove URL from vector store');
+    } finally {
+      setRemovingUrl(null);
+    }
+  };
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -28,15 +72,7 @@ export default function SourcesPage() {
 
     const load = async () => {
       try {
-        const [sourcesRes, urlsRes] = await Promise.all([
-          axios.get('/api/admin/sources', {
-            headers: { Authorization: `Bearer ${token}` },
-            timeout: 8000,
-          }),
-          axios.get('/api/chat/ingested-urls', { timeout: 5000 }),
-        ]);
-        setSources(sourcesRes.data.sources || []);
-        setIngestedUrls(urlsRes.data.urls || []);
+        await loadData(token);
       } catch (err: any) {
         if (err.response?.status === 401) {
           localStorage.removeItem('token');
@@ -93,6 +129,14 @@ export default function SourcesPage() {
                 >
                   {url}
                 </a>
+                <button
+                  type="button"
+                  onClick={() => handleRemoveUrl(url)}
+                  disabled={removingUrl === url}
+                  className="ml-auto px-2 py-1 text-xs rounded bg-red-100 text-red-700 hover:bg-red-200 disabled:opacity-60"
+                >
+                  {removingUrl === url ? 'Removing...' : 'Remove'}
+                </button>
               </li>
             ))}
           </ul>

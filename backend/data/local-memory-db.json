@@ -1,0 +1,298 @@
+{
+  "adminUsers": [
+    {
+      "id": "admin-local-1",
+      "organization_id": "default",
+      "email": "admin@aicsa.local",
+      "password_hash": "$2a$10$03Z1CrjMPW0EdTdCKJH6uu8HhcY6ozjJ7PjXp3HvfgLYNgQYBGAi.",
+      "role": "admin",
+      "last_login": "2026-03-13T17:03:45.652Z"
+    }
+  ],
+  "conversations": [
+    {
+      "id": "e0d5b92d-919e-4f2e-9f72-69c62ffa1c3a",
+      "organization_id": "default",
+      "session_id": "session-1773334194907",
+      "user_email": null,
+      "user_name": null,
+      "messages": [
+        {
+          "role": "user",
+          "content": "Where is cyprus",
+          "timestamp": "2026-03-12T16:51:00.528Z"
+        },
+        {
+          "role": "bot",
+          "content": "_Note: This answer does not use vector store context._\n\n\n\nCyprus is an island country in the eastern Mediterranean Sea, located south of Turkey and east of Greece. Its capital is Nicosia.",
+          "timestamp": "2026-03-12T16:51:00.528Z",
+          "sources": []
+        },
+        {
+          "role": "user",
+          "content": "Can you tell me about Pune",
+          "timestamp": "2026-03-12T16:52:27.567Z"
+        },
+        {
+          "role": "bot",
+          "content": "\n\nPune is a major city in Maharashtra, India, known as the administrative headquarters of Pune district. Formerly called Poona until 1978, it is the largest city in Maharashtra by land area. It hosts numerous townships, business opportunities, and infrastructure. Pune is recognized for its quality of living (Mercer 2017 rankings) and is home to professional football clubs like Pune Peshwas and the Pune Marathas (American football).",
+          "timestamp": "2026-03-12T16:52:27.567Z",
+          "sources": [
+            {
+              "source_id": "238f53ba-b528-4e71-bf0d-6a15625a9d45",
+              "name": "https://en.wikipedia.org/wiki/Pune",
+              "url": "https://en.wikipedia.org/wiki/Pune",
+              "confidence_min": 0.7418463394245218,
+              "confidence_max": 0.836778417041987,
+              "match_count": 5
+            }
+          ]
+        }
+      ],
+      "message_count": 4,
+      "was_escalated": false,
+      "feedback_rating": null,
+      "feedback_is_correct": null,
+      "feedback_comment": null,
+      "created_at": "2026-03-12T16:51:00.529Z",
+      "updated_at": "2026-03-12T16:52:27.567Z"
+    },
+    {
+      "id": "2032e7fe-e920-417b-92f8-55e01c9b0beb",
+      "organization_id": "default",
+      "session_id": "session-1773334969843",
+      "user_email": null,
+      "user_name": null,
+      "messages": [
+        {
+          "role": "user",
+          "content": "What is (a+b)^2",
+          "timestamp": "2026-03-12T17:04:14.081Z"
+        },
+        {
+          "role": "bot",
+          "content": "_Note: This answer does not use vector store context._\n\n\n\n(a + b)² = a² + 2ab + b².",
+          "timestamp": "2026-03-12T17:04:14.081Z",
+          "sources": []
+        }
+      ],
+      "message_count": 2,
+      "was_escalated": false,
+      "feedback_rating": null,
+      "feedback_is_correct": null,
+      "feedback_comment": null,
+      "created_at": "2026-03-12T17:04:14.081Z",
+      "updated_at": "2026-03-12T17:04:14.081Z"
+    },
+    {
+      "id": "121ceb89-ea8f-4f0b-919d-60fa06c36bd8",
+      "organization_id": "default",
+      "session_id": "session-1773414461411",
+      "user_email": null,
+      "user_name": null,
+      "messages": [
+        {
+          "role": "user",
+          "content": "Where is pune",
+          "timestamp": "2026-03-13T15:08:43.991Z"
+        },
+        {
+          "role": "bot",
+          "content": "\n\nPune is a city in the state of Maharashtra, located on the Deccan Plateau in Western India.",
+          "timestamp": "2026-03-13T15:08:43.991Z",
+          "sources": [
+            {
+              "source_id": "238f53ba-b528-4e71-bf0d-6a15625a9d45",
+              "name": "https://en.wikipedia.org/wiki/Pune",
+              "url": "https://en.wikipedia.org/wiki/Pune",
+              "confidence_min": 0.6960228122331511,
+              "confidence_max": 0.8162182483646561,
+              "match_count": 5
+            }
+          ]
+        },
+        {
+          "role": "user",
+          "content": "Where is Irvine",
+          "timestamp": "2026-03-13T15:09:41.526Z"
+        },
+        {
+          "role": "bot",
+          "content": "_Note: This answer does not use vector store context._\n\n\n\nIrvine is a city in Orange County, California, located in the southern part of the Los Angeles metropolitan area. It is known as a planned community with a focus on education, technology, and quality of life.",
+          "timestamp": "2026-03-13T15:09:41.526Z",
+          "sources": []
+        }
+      ],
+      "message_count": 4,
+      "was_escalated": false,
+      "feedback_rating": null,
+      "feedback_is_correct": null,
+      "feedback_comment": null,
+      "created_at": "2026-03-13T15:08:43.991Z",
+      "updated_at": "2026-03-13T15:09:41.526Z"
+    },
+    {
+      "id": "b35670cf-db69-49f2-94d6-2c12fe96ac14",
+      "organization_id": "default",
+      "session_id": "session-1773417380173",
+      "user_email": null,
+      "user_name": null,
+      "messages": [
+        {
+          "role": "user",
+          "content": "What are popular in mumbai",
+          "timestamp": "2026-03-13T15:59:13.665Z"
+        },
+        {
+          "role": "bot",
+          "content": "\n\nMumbai is popular for the Elephanta Festival (classical dance/music), Parshuram Mandir temple, and its numerous newspapers like Marathi dailies (Maharashtra Times, Lokmat) and English publications (The Times of India, Indian Express).",
+          "timestamp": "2026-03-13T15:59:13.665Z",
+          "sources": [
+            {
+              "source_id": "7c0ec81e-e6fe-4579-a563-c35c39fc5a5a",
+              "name": "https://en.wikipedia.org/wiki/Mumbai",
+              "url": "https://en.wikipedia.org/wiki/Mumbai",
+              "confidence_min": 0.6811235368275522,
+              "confidence_max": 0.7439058671946994,
+              "match_count": 5
+            }
+          ]
+        },
+        {
+          "role": "user",
+          "content": "Where is paris",
+          "timestamp": "2026-03-13T16:00:00.433Z"
+        },
+        {
+          "role": "bot",
+          "content": "_Note: This answer does not use vector store context._\n\n\n\nParis is the capital of France, located in the north-central part of the country.",
+          "timestamp": "2026-03-13T16:00:00.433Z",
+          "sources": []
+        }
+      ],
+      "message_count": 4,
+      "was_escalated": false,
+      "feedback_rating": null,
+      "feedback_is_correct": null,
+      "feedback_comment": null,
+      "created_at": "2026-03-13T15:59:13.665Z",
+      "updated_at": "2026-03-13T16:00:00.433Z"
+    },
+    {
+      "id": "9b10c7bb-955c-4bfe-9498-07c7a16629a0",
+      "organization_id": "default",
+      "session_id": "session-1773420440274",
+      "user_email": null,
+      "user_name": null,
+      "messages": [
+        {
+          "role": "user",
+          "content": "Where is Pune",
+          "timestamp": "2026-03-13T16:48:18.245Z"
+        },
+        {
+          "role": "bot",
+          "content": "\n\nPune is a city in Maharashtra, India, located on the Deccan Plateau in Western India.",
+          "timestamp": "2026-03-13T16:48:18.245Z",
+          "confidence": 0.7312100299683759,
+          "confidence_reason": "avg similarity 0.73; no major penalties",
+          "response_time_ms": 47453,
+          "sources": [
+            {
+              "source_id": "238f53ba-b528-4e71-bf0d-6a15625a9d45",
+              "name": "https://en.wikipedia.org/wiki/Pune",
+              "url": "https://en.wikipedia.org/wiki/Pune",
+              "confidence_min": 0.6960228122331511,
+              "confidence_max": 0.8162182483646561,
+              "match_count": 5
+            }
+          ]
+        },
+        {
+          "role": "user",
+          "content": "Where is paris",
+          "timestamp": "2026-03-13T16:49:12.300Z"
+        },
+        {
+          "role": "bot",
+          "content": "_Note: This answer does not use vector store context._\n\n\n\nParis is the capital of France, located in the north-central part of the country on the Seine River.",
+          "timestamp": "2026-03-13T16:49:12.300Z",
+          "confidence": 0.5,
+          "confidence_reason": "No relevant vector-store evidence; baseline confidence applied.",
+          "response_time_ms": 24057,
+          "sources": []
+        }
+      ],
+      "message_count": 4,
+      "was_escalated": false,
+      "feedback_rating": null,
+      "feedback_is_correct": null,
+      "feedback_comment": null,
+      "created_at": "2026-03-13T16:48:18.245Z",
+      "updated_at": "2026-03-13T16:49:12.300Z"
+    }
+  ],
+  "sources": [
+    {
+      "id": "vs-9ce3ffba12d3",
+      "organization_id": "default",
+      "name": "en.wikipedia.org_wiki_Hyderabad",
+      "source_type": "website",
+      "config": "{\"url\":\"https://en.wikipedia.org/wiki/Hyderabad\"}",
+      "status": "indexed",
+      "chunk_count": 0,
+      "last_indexed": "2026-03-12T16:49:30.693Z",
+      "error_message": null,
+      "created_at": "2026-03-12T16:49:30.693Z",
+      "updated_at": "2026-03-12T16:49:30.693Z"
+    },
+    {
+      "id": "7c0ec81e-e6fe-4579-a563-c35c39fc5a5a",
+      "organization_id": "default",
+      "name": "https://en.wikipedia.org/wiki/Mumbai",
+      "source_type": "website",
+      "config": "{\"url\":\"https://en.wikipedia.org/wiki/Mumbai\",\"chunk_count\":28}",
+      "status": "indexed",
+      "chunk_count": 0,
+      "last_indexed": "2026-03-13T15:56:47.369Z",
+      "error_message": null,
+      "created_at": "2026-03-13T15:56:47.370Z",
+      "updated_at": "2026-03-13T15:56:47.370Z"
+    },
+    {
+      "id": "vs-ac9670fe9e64",
+      "organization_id": "default",
+      "name": "en.wikipedia.org_wiki_Mumbai",
+      "source_type": "website",
+      "config": "{\"url\":\"https://en.wikipedia.org/wiki/Mumbai\"}",
+      "status": "indexed",
+      "chunk_count": 0,
+      "last_indexed": "2026-03-13T16:40:36.992Z",
+      "error_message": null,
+      "created_at": "2026-03-13T16:40:36.992Z",
+      "updated_at": "2026-03-13T16:40:36.992Z"
+    }
+  ],
+  "escalationRules": [
+    {
+      "id": "rule-local-1",
+      "organization_id": "default",
+      "rule_type": "keyword",
+      "name": "Default keyword escalation",
+      "config": {
+        "keywords": [
+          "refund",
+          "cancel",
+          "complaint",
+          "human",
+          "agent"
+        ]
+      },
+      "escalation_email": "support@company.com",
+      "enabled": true,
+      "created_at": "2026-03-12T16:49:30.647Z",
+      "updated_at": "2026-03-12T16:49:30.648Z"
+    }
+  ],
+  "updated_at": "2026-03-13T17:03:45.652Z"
+}

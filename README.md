@@ -13,6 +13,8 @@ The current implementation uses Ollama for generation and embeddings, a persiste
 - Local vector-store persistence is implemented in `backend/data/local-vector-store.json`
 - Ingested URLs are loaded on startup and exposed through `/api/chat/ingested-urls`
 - Non-vector answers are clearly marked in the chat UI
+- Each request/response turn now shows response time in seconds in the chat UI
+- Confidence is shown with an explanatory reason in the chat UI
 - Dashboard routes are implemented for overview, sources, conversations, escalation rules, and settings
 - The backend gracefully shuts down and `ts-node-dev` is configured with `--exit-child`
 
@@ -33,6 +35,20 @@ The current implementation uses Ollama for generation and embeddings, a persiste
 ollama pull qwen:latest
 ollama pull nomic-embed-text:latest
 ```
+
+### One-time machine setup (new machine)
+
+```powershell
+.\setup-environment.ps1 -PullOllamaModels
+```
+
+This script:
+
+- validates Node.js/npm prerequisites
+- creates local backend runtime folders (`data`, `logs`, `uploads`)
+- creates `backend/.env` with local-first defaults (local vector store + Ollama)
+- installs npm dependencies for backend and frontend apps
+- optionally pulls Ollama models when `-PullOllamaModels` is provided
 
 ### Start everything
 
@@ -87,6 +103,7 @@ The script will:
 - Can ingest URLs
 - Shows startup ingested URLs
 - Marks answers that did not use vector-store context
+- Shows per-turn response time in seconds and confidence reason
 
 ## Important Runtime Behavior
 
@@ -146,6 +163,7 @@ npm run build
 ### Public chat APIs
 
 - `POST /api/chat/message`
+- `POST /api/chat/message/stream`
 - `GET /api/chat/ingested-urls`
 - `GET /api/chat/conversation/:id`
 - `POST /api/chat/escalate`
@@ -161,6 +179,7 @@ npm run build
 - `GET /api/admin/sources`
 - `POST /api/admin/sources`
 - `DELETE /api/admin/sources/:id`
+- `POST /api/admin/sources/remove-url`
 - `POST /api/admin/sources/ingest-url`
 - `GET /api/admin/conversations`
 - `POST /api/admin/conversations/:id/feedback`

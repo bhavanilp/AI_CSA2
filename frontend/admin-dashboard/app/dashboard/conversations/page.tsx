@@ -29,6 +29,10 @@ interface ConversationMessage {
   role: 'user' | 'bot' | string;
   content: string;
   timestamp?: string;
+  confidence?: number;
+  confidence_reason?: string;
+  response_time_sec?: number;
+  response_time_ms?: number;
   sources?: ConversationSource[];
 }
 
@@ -172,6 +176,43 @@ export default function ConversationsPage() {
 
     if (typeof src.score === 'number') {
       return src.score.toFixed(2);
+    }
+
+    return null;
+  };
+
+  const deriveResponseTimeSec = (messages: ConversationMessage[], index: number): number | null => {
+    const current = messages[index];
+    if (typeof current?.response_time_sec === 'number') {
+      return Math.max(0, Number(current.response_time_sec));
+    }
+
+    if (typeof current?.response_time_ms === 'number') {
+      return Math.max(0, Number((current.response_time_ms / 1000).toFixed(3)));
+    }
+
+    if (current?.role === 'bot') {
+      for (let i = index - 1; i >= 0; i -= 1) {
+        if (messages[i]?.role !== 'user') continue;
+        const userTs = Date.parse(messages[i].timestamp || '');
+        const botTs = Date.parse(current.timestamp || '');
+        if (!Number.isNaN(userTs) && !Number.isNaN(botTs) && botTs >= userTs) {
+          return Number(((botTs - userTs) / 1000).toFixed(3));
+        }
+        break;
+      }
+    }
+
+    if (current?.role === 'user') {
+      for (let i = index + 1; i < messages.length; i += 1) {
+        if (messages[i]?.role !== 'bot') continue;
+        const userTs = Date.parse(current.timestamp || '');
+        const botTs = Date.parse(messages[i].timestamp || '');
+        if (!Number.isNaN(userTs) && !Number.isNaN(botTs) && botTs >= userTs) {
+          return Number(((botTs - userTs) / 1000).toFixed(3));
+        }
+        break;
+      }
     }
 
     return null;
@@ -324,6 +365,9 @@ export default function ConversationsPage() {
               <div className="space-y-3">
                 {selectedConversation.messages?.length ? (
                   selectedConversation.messages.map((msg, idx) => (
+                    (() => {
+                      const responseSec = deriveResponseTimeSec(selectedConversation.messages, idx);
+                      return (
                     <div
                       key={`${msg.timestamp || idx}-${idx}`}
                       className={`rounded-lg p-4 border ${msg.role === 'user' ? 'bg-blue-50 border-blue-100' : 'bg-gray-50 border-gray-200'}`}
@@ -335,6 +379,19 @@ export default function ConversationsPage() {
                         </span>
                       </div>
                       <p className="text-sm text-gray-800 whitespace-pre-wrap">{msg.content}</p>
+
+                      {typeof responseSec === 'number' && (
+                        <p className="mt-2 text-xs text-gray-600">
+                          {msg.role === 'bot' ? 'Response time' : 'Round-trip'}: {responseSec.toFixed(2)}s
+                        </p>
+                      )}
+
+                      {msg.role === 'bot' && typeof msg.confidence === 'number' && (
+                        <p className="mt-1 text-xs text-gray-600">
+                          Confidence: {(msg.confidence * 100).toFixed(1)}%
+                          {msg.confidence_reason ? ` (${msg.confidence_reason})` : ''}
+                        </p>
+                      )}
 
                       {msg.sources && msg.sources.length > 0 && (
                         <div className="mt-3 pt-3 border-t border-gray-200 space-y-1">
@@ -361,6 +418,8 @@ export default function ConversationsPage() {
                         </div>
                       )}
                     </div>
+                      );
+                    })()
                   ))
                 ) : (
                   <div className="py-8 text-center text-sm text-gray-500">No messages found for this conversation.</div>

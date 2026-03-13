@@ -1,12 +1,66 @@
 import { Router, Request, Response } from 'express';
 import { v4 as uuidv4 } from 'uuid';
 import { query } from '../config/database';
+import { deleteVectorsBySourceUrl } from '../config/vectorDb';
 import { authMiddleware, adminMiddleware } from '../middleware/auth';
 import { asyncHandler } from '../middleware/errorHandler';
 import { ingestWebsite } from '../services/ingestionService';
 import logger from '../utils/logger';
 
 const router = Router();
+
+const computeResponseTimesFromMessages = (messages: any[]): number[] => {
+  if (!Array.isArray(messages)) return [];
+
+  const times: number[] = [];
+  for (let i = 0; i < messages.length; i += 1) {
+    const msg = messages[i] || {};
+    if (msg.role !== 'bot') continue;
+
+    if (typeof msg.response_time_sec === 'number' && Number.isFinite(msg.response_time_sec)) {
+      times.push(Math.max(0, Number(msg.response_time_sec)));
+      continue;
+    }
+
+    if (typeof msg.response_time_ms === 'number' && Number.isFinite(msg.response_time_ms)) {
+      times.push(Math.max(0, Number((msg.response_time_ms / 1000).toFixed(3))));
+      continue;
+    }
+
+    // Fallback when explicit response time metadata is missing: derive from user->bot timestamp delta.
+    for (let j = i - 1; j >= 0; j -= 1) {
+      const prev = messages[j] || {};
+      if (prev.role !== 'user') continue;
+
+      const userTs = Date.parse(prev.timestamp || '');
+      const botTs = Date.parse(msg.timestamp || '');
+      if (!Number.isNaN(userTs) && !Number.isNaN(botTs) && botTs >= userTs) {
+        times.push(Number(((botTs - userTs) / 1000).toFixed(3)));
+      }
+      break;
+    }
+  }
+
+  return times;
+};
+
+const extractSourceUrl = (sourceConfig: unknown): string | null => {
+  if (!sourceConfig) {
+    return null;
+  }
+
+  try {
+    const parsed = typeof sourceConfig === 'string' ? JSON.parse(sourceConfig) : sourceConfig;
+    if (parsed && typeof parsed === 'object' && typeof (parsed as any).url === 'string') {
+      const url = (parsed as any).url.trim();
+      return url.length > 0 ? url : null;
+    }
+  } catch {
+    return null;
+  }
+
+  return null;
+};
 
 // Apply auth middleware to all admin routes
 router.use(authMiddleware);
@@ -86,6 +140,49 @@ router.delete(
   })
 );
 
+// POST /api/admin/sources/remove-url
+router.post(
+  '/sources/remove-url',
+  asyncHandler(async (req: Request, res: Response) => {
+    const organizationId = req.organizationId;
+    const url = typeof req.body?.url === 'string' ? req.body.url.trim() : '';
+
+    if (!url) {
+      res.status(400).json({ error: 'url is required' });
+      return;
+    }
+
+    const deletedVectorCount = await deleteVectorsBySourceUrl(url, organizationId as string);
+
+    const sourcesResult = await query(
+      `SELECT id, config
+       FROM sources WHERE organization_id = $1
+       ORDER BY created_at DESC LIMIT $2 OFFSET $3`,
+      [organizationId, 1000, 0],
+    );
+
+    const matchingSourceIds = (sourcesResult.rows || [])
+      .filter((row: any) => extractSourceUrl(row.config) === url)
+      .map((row: any) => row.id)
+      .filter(Boolean);
+
+    let deletedSourceCount = 0;
+    for (const sourceId of matchingSourceIds) {
+      const deleteResult = await query(
+        `DELETE FROM sources WHERE id = $1 AND organization_id = $2`,
+        [sourceId, organizationId],
+      );
+      deletedSourceCount += deleteResult.rowCount || 0;
+    }
+
+    res.status(200).json({
+      url,
+      deleted_vector_count: deletedVectorCount,
+      deleted_source_count: deletedSourceCount,
+    });
+  }),
+);
+
 // GET /api/admin/conversations
 router.get(
   '/conversations',
@@ -154,28 +251,38 @@ router.get(
     const startDate = (req.query.start_date as string) || new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
     const endDate = (req.query.end_date as string) || new Date().toISOString();
 
-    const statsResult = await query(
-      `SELECT 
-        COUNT(*) as total_conversations,
-        AVG(EXTRACT(EPOCH FROM (updated_at - created_at))) as avg_response_time_sec,
-        SUM(CASE WHEN was_escalated THEN 1 ELSE 0 END)::float / COUNT(*) as escalation_rate,
-        AVG(feedback_rating) as avg_satisfaction,
-        COUNT(DISTINCT session_id) as unique_users
+    const rowsResult = await query(
+      `SELECT session_id, was_escalated, feedback_rating, messages
        FROM conversations
        WHERE organization_id = $1 AND created_at BETWEEN $2 AND $3`,
-      [organizationId, startDate, endDate]
+      [organizationId, startDate, endDate],
     );
 
-    const stats = statsResult.rows[0];
+    const rows = rowsResult.rows || [];
+    const totalConversations = rows.length;
+    const escalatedCount = rows.filter((r: any) => !!r.was_escalated).length;
+
+    const rated = rows
+      .map((r: any) => (typeof r.feedback_rating === 'number' ? r.feedback_rating : null))
+      .filter((v: number | null): v is number => v !== null);
+
+    const avgSatisfaction = rated.length > 0 ? rated.reduce((sum, r) => sum + r, 0) / rated.length : 0;
+    const uniqueUsers = new Set(rows.map((r: any) => r.session_id).filter(Boolean)).size;
+
+    const allResponseTimes = rows.flatMap((r: any) => computeResponseTimesFromMessages(r.messages));
+    const avgResponseTimeSec =
+      allResponseTimes.length > 0
+        ? Number((allResponseTimes.reduce((sum, t) => sum + t, 0) / allResponseTimes.length).toFixed(3))
+        : 0;
 
     res.status(200).json({
       date_range: { start: startDate, end: endDate },
       stats: {
-        total_conversations: parseInt(stats.total_conversations),
-        avg_response_time_ms: stats.avg_response_time_sec ? Math.round(stats.avg_response_time_sec * 1000) : 0,
-        escalation_rate: stats.escalation_rate || 0,
-        avg_satisfaction: stats.avg_satisfaction || 0,
-        unique_users: parseInt(stats.unique_users),
+        total_conversations: totalConversations,
+        avg_response_time_sec: avgResponseTimeSec,
+        escalation_rate: totalConversations > 0 ? escalatedCount / totalConversations : 0,
+        avg_satisfaction: avgSatisfaction,
+        unique_users: uniqueUsers,
       },
     });
   })

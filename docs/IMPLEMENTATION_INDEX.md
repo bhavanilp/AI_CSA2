@@ -40,13 +40,15 @@ This file tracks what is implemented in the current repository state.
 
 - `backend/src/api/chat.ts`
   - `POST /api/chat/message`
+  - `POST /api/chat/message/stream`
   - `GET /api/chat/ingested-urls`
   - `GET /api/chat/conversation/:id`
   - `POST /api/chat/escalate`
 
 - `backend/src/api/admin.ts`
-  - metrics
+  - metrics (average response time derived from per-turn bot latency, not conversation lifetime)
   - sources CRUD
+  - source URL removal from vector store (`POST /api/admin/sources/remove-url`)
   - ingest URL
   - conversations list
   - conversation feedback
@@ -61,6 +63,8 @@ This file tracks what is implemented in the current repository state.
   - fallback answer path when no relevant vector hit exists
   - non-vector note for UI display
   - timeout-safe user-facing error
+  - per-turn `response_time_sec` captured and persisted in bot messages
+  - `confidence_reason` generated and returned with confidence score
 
 - `backend/src/services/llmService.ts`
   - Ollama generation through `qwen:latest`
@@ -76,17 +80,19 @@ This file tracks what is implemented in the current repository state.
   - blank-page redirect bug fixed
 
 - `frontend/admin-dashboard/app/dashboard/page.tsx`
-  - metrics overview
+  - metrics overview with corrected average response time
   - operations snapshot links
 
 - `frontend/admin-dashboard/app/dashboard/sources/page.tsx`
   - ingested URL list
+  - remove URL action (deletes vectors for that URL)
   - source record table
 
 - `frontend/admin-dashboard/app/dashboard/conversations/page.tsx`
   - conversation table
   - feedback actions
   - transcript drill-down drawer
+  - per-message response time and confidence reason display in transcript
 
 - `frontend/admin-dashboard/app/dashboard/escalation-rules/page.tsx`
   - enable/disable rules
@@ -105,6 +111,9 @@ This file tracks what is implemented in the current repository state.
   - vector-store answer badge
   - non-vector fallback badge
   - activity log view
+  - per-request round-trip time and per-response latency display
+  - confidence score reason display
+  - editor tab removed
 
 ## Automated tests
 

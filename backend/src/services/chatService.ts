@@ -9,6 +9,9 @@ export interface Message {
   role: 'user' | 'bot';
   content: string;
   timestamp: string;
+  confidence?: number;
+  confidence_reason?: string;
+  response_time_sec?: number;
   sources?: Array<{
     source_id: string;
     name: string;
@@ -30,6 +33,8 @@ export interface ChatResponse {
   role: 'bot';
   content: string;
   confidence: number;
+  confidence_reason: string;
+  response_time_sec: number;
   sources: Array<{
     source_id: string;
     name: string;
@@ -119,14 +124,21 @@ const computeAnswerConfidence = (params: {
   relevantChunks: Array<{ score?: number }>;
   answer: string;
   escalated: boolean;
-}): number => {
+}): { confidence: number; reason: string } => {
   const { usedVectorStore, relevantChunks, answer, escalated } = params;
 
-  if (escalated) return 0.0;
+  if (escalated) {
+    return {
+      confidence: 0.0,
+      reason: 'Escalation triggered by policy/rule; confidence forced to 0.',
+    };
+  }
 
   if (!usedVectorStore) {
-    // No vector context — moderate confidence; we have no retrieval quality signal
-    return 0.5;
+    return {
+      confidence: 0.5,
+      reason: 'No relevant vector-store evidence; baseline confidence applied.',
+    };
   }
 
   // 1. Average cosine similarity of relevant chunks (already filtered to >= 0.6)
@@ -144,12 +156,21 @@ const computeAnswerConfidence = (params: {
   const len = answer.trim().length;
   const lengthPenalty = len < 30 ? 0.2 : len < 60 ? 0.08 : 0;
 
-  const confidence = avgScore - hedgePenalty - lengthPenalty;
-  return Math.max(0.0, Math.min(1.0, confidence));
+  const confidence = Math.max(0.0, Math.min(1.0, avgScore - hedgePenalty - lengthPenalty));
+  const reasonParts = [`avg similarity ${avgScore.toFixed(2)}`];
+  if (hasHedge) reasonParts.push('hedge phrase penalty 0.30');
+  if (lengthPenalty > 0) reasonParts.push(`short-answer penalty ${lengthPenalty.toFixed(2)}`);
+  if (!hasHedge && lengthPenalty === 0) reasonParts.push('no major penalties');
+
+  return {
+    confidence,
+    reason: reasonParts.join('; '),
+  };
 };
 
 export const processChat = async (req: ChatRequest): Promise<ChatResponse> => {
   try {
+    const requestStartMs = Date.now();
     const MIN_VECTOR_RELEVANCE_SCORE = 0.60;
 
     // Get or create conversation
@@ -211,6 +232,7 @@ export const processChat = async (req: ChatRequest): Promise<ChatResponse> => {
     // 5. Generate answer using LLM
     let answer = '';
     let confidence = 0;
+    let confidenceReason = 'No confidence signal available.';
 
     let usedVectorStore = false;
     let vectorStoreNote: string | undefined;
@@ -223,28 +245,33 @@ export const processChat = async (req: ChatRequest): Promise<ChatResponse> => {
         const result = await generateAnswer(systemPromptForContext, req.message, contextChunks);
         answer = result.answer;
         usedVectorStore = true;
-        confidence = computeAnswerConfidence({
+        const computed = computeAnswerConfidence({
           usedVectorStore: true,
           relevantChunks,
           answer,
           escalated: false,
         });
+        confidence = computed.confidence;
+        confidenceReason = computed.reason;
 
         if (confidence < config.rag.confidence_threshold) {
           shouldEscalate = true;
           escalationReason = 'confidence_low';
+          confidenceReason = `${confidenceReason}; below threshold ${config.rag.confidence_threshold.toFixed(2)}.`;
         }
       } else if (!shouldEscalate) {
         const fallbackResult = await generateAnswer(fallbackSystemPrompt, req.message, '');
         answer = `_Note: This answer does not use vector store context._\n\n${fallbackResult.answer}`;
         usedVectorStore = false;
         vectorStoreNote = 'No relevant vector-store content matched the question.';
-        confidence = computeAnswerConfidence({
+        const computed = computeAnswerConfidence({
           usedVectorStore: false,
           relevantChunks: [],
           answer: fallbackResult.answer,
           escalated: false,
         });
+        confidence = computed.confidence;
+        confidenceReason = computed.reason;
       }
     } catch (llmError: any) {
       const isTimeout =
@@ -256,14 +283,20 @@ export const processChat = async (req: ChatRequest): Promise<ChatResponse> => {
         ? 'The AI model is taking too long to respond. Please try again in a moment.'
         : 'An error occurred while generating the answer. Please try again.';
       confidence = 0;
+      confidenceReason = 'LLM error/timeout; confidence forced to 0.';
       usedVectorStore = false;
       vectorStoreNote = 'LLM error; no vector context used.';
+    }
+
+    if (shouldEscalate && confidence === 0 && !confidenceReason.includes('Escalation')) {
+      confidenceReason = 'Escalated response; confidence forced to 0.';
     }
 
     // 6. Prepare response with sources
     const sources = dedupeSourcesByUrlWithConfidenceRange(relevantChunks.slice(0, 5));
 
     const messageId = uuidv4();
+    const responseTimeSec = Number(((Date.now() - requestStartMs) / 1000).toFixed(3));
 
     // 7. Store conversation in database
     const messages: Message[] = [
@@ -276,6 +309,9 @@ export const processChat = async (req: ChatRequest): Promise<ChatResponse> => {
         role: 'bot',
         content: answer,
         timestamp: new Date().toISOString(),
+        confidence,
+        confidence_reason: confidenceReason,
+        response_time_sec: responseTimeSec,
         sources,
       },
     ];
@@ -298,6 +334,8 @@ export const processChat = async (req: ChatRequest): Promise<ChatResponse> => {
       role: 'bot',
       content: answer,
       confidence,
+      confidence_reason: confidenceReason,
+      response_time_sec: responseTimeSec,
       sources,
       should_escalate: shouldEscalate,
       escalation_reason: escalationReason,
@@ -336,6 +374,7 @@ type SSESender = (event: string, data: unknown) => void;
  * Caller is responsible for writing SSE headers and calling res.end().
  */
 export const processChatStream = async (req: ChatRequest, send: SSESender): Promise<void> => {
+  const requestStartMs = Date.now();
   const MIN_VECTOR_RELEVANCE_SCORE = 0.60;
 
   const conversationId = req.conversation_id || uuidv4();
@@ -435,19 +474,34 @@ export const processChatStream = async (req: ChatRequest, send: SSESender): Prom
     }
   }
 
-  const confidence = computeAnswerConfidence({
+  const computed = computeAnswerConfidence({
     usedVectorStore: shouldUseVectorStore,
     relevantChunks,
     answer: fullAnswer,
     escalated: shouldEscalate,
   });
+  const confidence = computed.confidence;
+  const confidenceReason = computed.reason;
+  const responseTimeSec = Number(((Date.now() - requestStartMs) / 1000).toFixed(3));
 
-  send('done', { confidence });
+  send('done', {
+    confidence,
+    confidence_reason: confidenceReason,
+    response_time_sec: responseTimeSec,
+  });
 
   // 7. Persist conversation
   const messages: Message[] = [
     { role: 'user', content: req.message, timestamp: new Date().toISOString() },
-    { role: 'bot', content: fullAnswer, timestamp: new Date().toISOString(), sources },
+    {
+      role: 'bot',
+      content: fullAnswer,
+      timestamp: new Date().toISOString(),
+      confidence,
+      confidence_reason: confidenceReason,
+      response_time_sec: responseTimeSec,
+      sources,
+    },
   ];
 
   await query(

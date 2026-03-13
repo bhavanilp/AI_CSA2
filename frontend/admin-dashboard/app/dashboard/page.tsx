@@ -8,7 +8,7 @@ import ConversationChart from '@/components/ConversationChart';
 
 interface Metrics {
   total_conversations: number;
-  avg_response_time_ms: number;
+  avg_response_time_sec: number;
   escalation_rate: number;
   avg_satisfaction: number;
   unique_users: number;
@@ -77,7 +77,7 @@ export default function DashboardPage() {
 
   const m = metrics ?? {
     total_conversations: 0,
-    avg_response_time_ms: 0,
+    avg_response_time_sec: 0,
     escalation_rate: 0,
     avg_satisfaction: 0,
     unique_users: 0,
@@ -99,7 +99,7 @@ export default function DashboardPage() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
         <MetricCard label="Total Conversations" value={m.total_conversations} icon="💬" />
-        <MetricCard label="Avg Response Time" value={`${m.avg_response_time_ms}ms`} icon="⚡" />
+        <MetricCard label="Avg Response Time" value={`${m.avg_response_time_sec.toFixed(2)}s`} icon="⚡" />
         <MetricCard
           label="Escalation Rate"
           value={`${(m.escalation_rate * 100).toFixed(1)}%`}

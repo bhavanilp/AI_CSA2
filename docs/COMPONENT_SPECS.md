@@ -10,6 +10,8 @@
   - vector retrieval
   - escalation keyword matching
   - vector-backed or fallback answer generation
+  - confidence reason generation
+  - per-turn response-time measurement
   - conversation persistence
 
 ### LLM service
@@ -45,6 +47,7 @@
 - session list
 - feedback actions
 - transcript drawer
+- per-message response time and confidence reason display
 
 ### Escalation rules page
 
@@ -68,3 +71,6 @@
 - chat thread
 - activity log panel
 - vector/fallback badges
+- per-request/response response-time display
+- confidence score reason in brackets
+- editor tab removed

@@ -72,7 +72,7 @@ CREATE TABLE conversations (
   user_name VARCHAR(255),
   
   -- Message history (stored as JSONB array)
-  messages JSONB,  -- [{role: 'user'|'bot', content: string, timestamp: ISO8601, sources: [...]}, ...]
+  messages JSONB,  -- [{role: 'user'|'bot', content: string, timestamp: ISO8601, sources: [...], response_time_sec?: number, confidence?: number, confidence_reason?: string}, ...]
   message_count INT DEFAULT 0,
   
   -- Escalation info

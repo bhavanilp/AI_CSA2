@@ -47,6 +47,7 @@ The current development shape of the project is:
   - asking questions against ingested content
   - showing activity logs
   - showing vector-store vs fallback answer state
+  - showing per-turn response time and confidence reason
 
 ## Core flow
 
@@ -123,6 +124,8 @@ The automated tests now cover the highest-value regressions fixed in this reposi
 - dashboard settings persistence
 - chat startup URL display
 - chat fallback badge rendering
+- chat stream metadata rendering for response time and confidence reason
+- dashboard transcript response-time/confidence metadata rendering
 
 ## Known boundaries
 
