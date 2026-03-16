@@ -48,6 +48,10 @@ The current development shape of the project is:
   - showing activity logs
   - showing vector-store vs fallback answer state
   - showing per-turn response time and confidence reason
+  - rendering assistant replies as Markdown
+  - per-reply feedback actions (thumbs up/down) and copy action
+  - optional thinking-trace visibility via `Show thinking` toggle
+  - per-reply token usage visibility
 
 ## Core flow
 
@@ -64,7 +68,7 @@ The current development shape of the project is:
 ### LLM
 
 - provider: Ollama
-- model: `qwen:latest`
+- model (startup default): `qwen3.5:2b`
 
 ### Embeddings
 
@@ -77,7 +81,12 @@ The current development shape of the project is:
 
 ### Relevance threshold
 
-- `0.60`
+- configurable via `VECTOR_RELEVANCE_THRESHOLD` (local default `0.55`)
+
+Additional retrieval behavior:
+
+- expanded candidate retrieval before filtering
+- lightweight lexical/entity-aware reranking for better factual/entity matches
 
 ## Developer workflow
 
@@ -125,7 +134,9 @@ The automated tests now cover the highest-value regressions fixed in this reposi
 - chat startup URL display
 - chat fallback badge rendering
 - chat stream metadata rendering for response time and confidence reason
+- chat stream metadata rendering for token usage and final-answer fallback
 - dashboard transcript response-time/confidence metadata rendering
+- dashboard transcript token-usage metadata rendering
 
 ## Known boundaries
 

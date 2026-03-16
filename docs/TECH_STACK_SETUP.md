@@ -11,7 +11,7 @@
 ## LLM and embeddings
 
 - Ollama
-- `qwen:latest` for answer generation
+- `qwen3.5:2b` (startup default) for answer generation
 - `nomic-embed-text:latest` for embeddings
 
 ## Data layer

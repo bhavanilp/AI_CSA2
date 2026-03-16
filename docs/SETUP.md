@@ -11,7 +11,7 @@ This project is designed to run locally with Ollama and a persisted local vector
 ## Required Ollama models
 
 ```powershell
-ollama pull qwen:latest
+ollama pull qwen3.5:2b
 ollama pull nomic-embed-text:latest
 ```
 
@@ -47,8 +47,9 @@ REDIS_DISABLED=true
 VECTOR_DB_PROVIDER=local
 LLM_PROVIDER=ollama
 OLLAMA_API_URL=http://localhost:11434
-OLLAMA_MODEL=qwen:latest
+OLLAMA_MODEL=qwen3.5:2b
 OLLAMA_EMBEDDING_MODEL=nomic-embed-text:latest
+VECTOR_RELEVANCE_THRESHOLD=0.55
 ```
 
 ## Manual startup
@@ -62,8 +63,9 @@ $env:REDIS_DISABLED='true'
 $env:VECTOR_DB_PROVIDER='local'
 $env:LLM_PROVIDER='ollama'
 $env:OLLAMA_API_URL='http://localhost:11434'
-$env:OLLAMA_MODEL='qwen:latest'
+$env:OLLAMA_MODEL='qwen3.5:2b'
 $env:OLLAMA_EMBEDDING_MODEL='nomic-embed-text:latest'
+$env:VECTOR_RELEVANCE_THRESHOLD='0.55'
 npm run dev
 ```
 
@@ -136,8 +138,18 @@ Get-NetTCPConnection -LocalPort 3000 -ErrorAction SilentlyContinue |
 The system already limits context size, but if Ollama is slow:
 
 - verify `ollama list`
-- ensure `qwen:latest` is available
+- ensure `qwen3.5:2b` (or your configured `OLLAMA_MODEL`) is available
 - retry the request after the model is warm
+
+### Thinking mode and blank answers
+
+The chat UI has a `Show thinking` toggle. When enabled, the backend requests thinking traces from the model. If a model emits only thinking tokens and no response tokens, the backend now auto-falls back to a non-thinking generation so the final answer still appears.
+
+### Token usage visibility
+
+- Chat UI shows token usage per assistant response (`prompt`, `completion`, `total`)
+- Dashboard overview includes total tokens and average tokens per response
+- Conversation transcript drawer includes per-message token usage
 
 ### Blank dashboard page
 

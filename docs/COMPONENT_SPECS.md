@@ -11,6 +11,8 @@
   - escalation keyword matching
   - vector-backed or fallback answer generation
   - confidence reason generation
+  - token usage capture for sync and streaming responses
+  - final-answer fallback handling for streaming responses
   - per-turn response-time measurement
   - conversation persistence
 
@@ -20,6 +22,8 @@
 - responsibilities:
   - Ollama completion calls
   - embedding calls
+  - per-request thinking toggle support
+  - token-usage extraction
   - prompt shaping and timeouts
 
 ### Vector store config
@@ -35,6 +39,7 @@
 ### Overview page
 
 - metrics cards
+- token usage metrics cards
 - operations snapshot links
 
 ### Sources page
@@ -47,7 +52,7 @@
 - session list
 - feedback actions
 - transcript drawer
-- per-message response time and confidence reason display
+- per-message response time, confidence reason, and token usage display
 
 ### Escalation rules page
 
@@ -73,4 +78,9 @@
 - vector/fallback badges
 - per-request/response response-time display
 - confidence score reason in brackets
+- markdown rendering for assistant messages
+- per-response token usage metadata
+- per-response feedback actions (thumbs up/down)
+- per-response copy action
+- `Show thinking` toggle and thinking-trace display
 - editor tab removed

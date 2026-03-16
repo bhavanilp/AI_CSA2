@@ -45,6 +45,8 @@ Coverage focus:
 - startup ingested URL list rendering
 - general-knowledge badge for non-vector answers
 - response-time and confidence-reason metadata rendering from streaming responses
+- per-response token usage rendering
+- feedback/copy action rendering and behavior
 
 ## Build validation
 
@@ -163,4 +165,17 @@ Open `http://localhost:5173` and verify:
 - fallback answers show the yellow general-knowledge badge
 - each request/response turn shows response time in seconds
 - confidence displays reason text in brackets
+- assistant responses render Markdown formatting (lists/links/code)
+- thumbs up/down feedback actions are visible on assistant responses
+- copy action copies assistant response content
+- token usage displays for assistant responses
+- with `Show thinking` enabled, thinking trace is visible and final answer still renders
+- with `Show thinking` disabled, no thinking trace is displayed
 - no editor tab is present
+
+## 9. Dashboard token metrics
+
+Open `http://localhost:3001` and verify:
+
+- overview shows token cards (total tokens, average tokens/response)
+- conversation transcript drawer shows per-bot-message token usage

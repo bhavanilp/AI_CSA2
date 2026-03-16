@@ -57,19 +57,25 @@ This file tracks what is implemented in the current repository state.
 ### Services
 
 - `backend/src/services/chatService.ts`
-  - vector retrieval threshold of `0.60`
+  - configurable vector retrieval threshold (`VECTOR_RELEVANCE_THRESHOLD`, local default `0.55`)
+  - lexical/entity-aware reranking and expanded retrieval candidate pool
   - 3-context-chunk cap
-  - 400-char chunk cap
+  - 800-char chunk cap
   - fallback answer path when no relevant vector hit exists
   - non-vector note for UI display
   - timeout-safe user-facing error
   - per-turn `response_time_sec` captured and persisted in bot messages
   - `confidence_reason` generated and returned with confidence score
+  - `token_usage` captured and persisted in bot messages
+  - stream `done` payload includes `final_answer` and `token_usage`
+  - thinking-enabled stream fallback to non-thinking generation when response tokens are missing
 
 - `backend/src/services/llmService.ts`
-  - Ollama generation through `qwen:latest`
+  - Ollama generation through configured model (startup default `qwen3.5:2b`)
   - embeddings through `nomic-embed-text:latest`
   - prompt and timeout tuning for local execution
+  - per-request thinking mode toggle support
+  - token-usage extraction for sync/streaming calls
 
 ## Admin dashboard
 
@@ -81,6 +87,7 @@ This file tracks what is implemented in the current repository state.
 
 - `frontend/admin-dashboard/app/dashboard/page.tsx`
   - metrics overview with corrected average response time
+  - token usage metrics cards (total tokens, avg tokens/response)
   - operations snapshot links
 
 - `frontend/admin-dashboard/app/dashboard/sources/page.tsx`
@@ -92,7 +99,7 @@ This file tracks what is implemented in the current repository state.
   - conversation table
   - feedback actions
   - transcript drill-down drawer
-  - per-message response time and confidence reason display in transcript
+  - per-message response time, confidence reason, and token usage display in transcript
 
 - `frontend/admin-dashboard/app/dashboard/escalation-rules/page.tsx`
   - enable/disable rules
@@ -113,6 +120,11 @@ This file tracks what is implemented in the current repository state.
   - activity log view
   - per-request round-trip time and per-response latency display
   - confidence score reason display
+  - markdown rendering for assistant replies
+  - `Show thinking` toggle per request
+  - per-response token usage display
+  - per-reply feedback actions (thumbs up/down)
+  - per-reply copy response action
   - editor tab removed
 
 ## Automated tests

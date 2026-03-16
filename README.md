@@ -1,4 +1,4 @@
-# AI Customer Support Agent
+# Demo AI Customer Support Agent
 
 A local-first RAG customer-support system with three running applications:
 
@@ -15,6 +15,10 @@ The current implementation uses Ollama for generation and embeddings, a persiste
 - Non-vector answers are clearly marked in the chat UI
 - Each request/response turn now shows response time in seconds in the chat UI
 - Confidence is shown with an explanatory reason in the chat UI
+- Assistant replies support Markdown rendering in the chat UI
+- Per-reply actions are available in chat UI: thumbs up, thumbs down, and copy response
+- Chat UI includes a "Show thinking" toggle to enable/disable model thinking traces
+- Token usage is shown per response in chat UI and in dashboard metrics/transcripts
 - Dashboard routes are implemented for overview, sources, conversations, escalation rules, and settings
 - The backend gracefully shuts down and `ts-node-dev` is configured with `--exit-child`
 
@@ -26,13 +30,13 @@ The current implementation uses Ollama for generation and embeddings, a persiste
 - npm
 - Ollama running locally
 - Ollama models:
-  - `qwen:latest`
+  - `qwen3.5:2b`
   - `nomic-embed-text:latest`
 
 ### Pull Ollama models
 
 ```powershell
-ollama pull qwen:latest
+ollama pull qwen3.5:2b
 ollama pull nomic-embed-text:latest
 ```
 
@@ -104,19 +108,25 @@ The script will:
 - Shows startup ingested URLs
 - Marks answers that did not use vector-store context
 - Shows per-turn response time in seconds and confidence reason
+- Renders assistant output as Markdown (including lists/code/links)
+- Provides thumbs up/down feedback and copy-response actions for each assistant reply
+- Provides a "Show thinking" toggle per request
+- Shows prompt/completion/total token counts for each assistant reply
 
 ## Important Runtime Behavior
 
 ### Vector retrieval threshold
 
-The backend currently treats vector matches below `0.60` as irrelevant and falls back to a general LLM answer.
+The backend uses a configurable threshold via `VECTOR_RELEVANCE_THRESHOLD` (default `0.55` in local setup).
+
+Retrieval also applies lightweight lexical and entity-aware reranking, and fetches a larger candidate pool before filtering, to improve factual lookups (for example, city population/location queries).
 
 ### Prompt sizing
 
 To avoid Ollama timeouts, the backend limits vector context to:
 
 - top 3 relevant chunks
-- 400 characters per chunk
+- 800 characters per chunk
 
 ### Startup sync
 
