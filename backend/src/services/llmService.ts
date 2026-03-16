@@ -5,6 +5,12 @@ import logger from '../utils/logger';
 
 let openaiClient: OpenAI | null = null;
 
+export interface TokenUsage {
+  prompt_tokens: number;
+  completion_tokens: number;
+  total_tokens: number;
+}
+
 export const initializeOpenAI = (): void => {
   if (config.llm.provider === 'openai') {
     openaiClient = new OpenAI({
@@ -59,10 +65,12 @@ export const generateEmbedding = async (text: string): Promise<number[]> => {
 export const generateAnswer = async (
   systemPrompt: string,
   userQuery: string,
-  context: string
-): Promise<{ answer: string; confidence: number }> => {
+  context: string,
+  options?: { enableThinking?: boolean },
+): Promise<{ answer: string; confidence: number; token_usage?: TokenUsage }> => {
   try {
     let answer = '';
+    let tokenUsage: TokenUsage | undefined;
 
     if (config.llm.provider === 'ollama') {
       // Keep the Ollama prompt short to minimise input token processing time.
@@ -76,6 +84,7 @@ export const generateAnswer = async (
         `${config.llm.ollama.api_url}/api/generate`,
         {
           model: config.llm.ollama.model,
+          think: options?.enableThinking === true,
           prompt,
           stream: false,
           options: {
@@ -87,6 +96,16 @@ export const generateAnswer = async (
         },
         { timeout: 180000 },
       );
+
+      const promptTokens = Number(response.data?.prompt_eval_count) || 0;
+      const completionTokens = Number(response.data?.eval_count) || 0;
+      const totalTokens = Number(response.data?.eval_count + response.data?.prompt_eval_count) || 0;
+      tokenUsage = {
+        prompt_tokens: promptTokens,
+        completion_tokens: completionTokens,
+        total_tokens: totalTokens,
+      };
+
       // Strip <think>...</think> block — the answer is what follows it
       const rawOllama = (response.data.response || '').trim();
       const thinkClose = rawOllama.indexOf('</think>');
@@ -115,11 +134,16 @@ export const generateAnswer = async (
       });
 
       answer = response.choices[0].message.content || '';
+      tokenUsage = {
+        prompt_tokens: response.usage?.prompt_tokens || 0,
+        completion_tokens: response.usage?.completion_tokens || 0,
+        total_tokens: response.usage?.total_tokens || 0,
+      };
     }
 
     // Return the raw answer; confidence is computed by the caller which has
     // access to vector scores and other context signals.
-    return { answer, confidence: 0 };
+    return { answer, confidence: 0, token_usage: tokenUsage };
   } catch (error) {
     logger.error(`Answer generation error: ${error}`);
     throw error;
@@ -134,7 +158,11 @@ export async function* generateAnswerStream(
   systemPrompt: string,
   userQuery: string,
   context: string,
-): AsyncGenerator<{ type: 'thinking' | 'response'; content: string }> {
+  options?: { enableThinking?: boolean },
+): AsyncGenerator<
+  | { type: 'thinking' | 'response'; content: string }
+  | { type: 'usage'; token_usage: TokenUsage }
+> {
   if (config.llm.provider === 'ollama') {
     const prompt =
       context.trim().length > 0
@@ -145,6 +173,7 @@ export async function* generateAnswerStream(
       `${config.llm.ollama.api_url}/api/generate`,
       {
         model: config.llm.ollama.model,
+        think: options?.enableThinking === true,
         prompt,
         stream: true,
         options: {
@@ -203,7 +232,17 @@ export async function* generateAnswerStream(
               }
             }
           }
-          if (parsed.done) return;
+          if (parsed.done) {
+            yield {
+              type: 'usage',
+              token_usage: {
+                prompt_tokens: Number(parsed.prompt_eval_count) || 0,
+                completion_tokens: Number(parsed.eval_count) || 0,
+                total_tokens: (Number(parsed.prompt_eval_count) || 0) + (Number(parsed.eval_count) || 0),
+              },
+            };
+            return;
+          }
         } catch {
           // partial JSON — keep buffering
         }
@@ -235,6 +274,17 @@ export async function* generateAnswerStream(
     for await (const chunk of stream) {
       const delta = chunk.choices[0]?.delta?.content;
       if (delta) yield { type: 'response', content: delta };
+
+      if (chunk.usage) {
+        yield {
+          type: 'usage',
+          token_usage: {
+            prompt_tokens: chunk.usage.prompt_tokens || 0,
+            completion_tokens: chunk.usage.completion_tokens || 0,
+            total_tokens: chunk.usage.total_tokens || 0,
+          },
+        };
+      }
     }
   }
 }

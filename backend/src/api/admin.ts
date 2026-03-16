@@ -44,6 +44,46 @@ const computeResponseTimesFromMessages = (messages: any[]): number[] => {
   return times;
 };
 
+const computeTokenUsageFromMessages = (messages: any[]): {
+  prompt_tokens: number;
+  completion_tokens: number;
+  total_tokens: number;
+  response_count: number;
+} => {
+  if (!Array.isArray(messages)) {
+    return { prompt_tokens: 0, completion_tokens: 0, total_tokens: 0, response_count: 0 };
+  }
+
+  return messages.reduce(
+    (acc, msg) => {
+      if (!msg || msg.role !== 'bot') {
+        return acc;
+      }
+
+      const usage = msg.token_usage || {};
+      const prompt = Number(usage.prompt_tokens) || 0;
+      const completion = Number(usage.completion_tokens) || 0;
+      const total = Number(usage.total_tokens) || prompt + completion;
+
+      if (prompt <= 0 && completion <= 0 && total <= 0) {
+        return acc;
+      }
+
+      acc.prompt_tokens += prompt;
+      acc.completion_tokens += completion;
+      acc.total_tokens += total;
+      acc.response_count += 1;
+      return acc;
+    },
+    {
+      prompt_tokens: 0,
+      completion_tokens: 0,
+      total_tokens: 0,
+      response_count: 0,
+    },
+  );
+};
+
 const extractSourceUrl = (sourceConfig: unknown): string | null => {
   if (!sourceConfig) {
     return null;
@@ -275,6 +315,23 @@ router.get(
         ? Number((allResponseTimes.reduce((sum, t) => sum + t, 0) / allResponseTimes.length).toFixed(3))
         : 0;
 
+    const tokenTotals = rows
+      .map((r: any) => computeTokenUsageFromMessages(r.messages))
+      .reduce(
+        (acc, curr) => ({
+          prompt_tokens: acc.prompt_tokens + curr.prompt_tokens,
+          completion_tokens: acc.completion_tokens + curr.completion_tokens,
+          total_tokens: acc.total_tokens + curr.total_tokens,
+          response_count: acc.response_count + curr.response_count,
+        }),
+        { prompt_tokens: 0, completion_tokens: 0, total_tokens: 0, response_count: 0 },
+      );
+
+    const avgTokensPerResponse =
+      tokenTotals.response_count > 0
+        ? Number((tokenTotals.total_tokens / tokenTotals.response_count).toFixed(1))
+        : 0;
+
     res.status(200).json({
       date_range: { start: startDate, end: endDate },
       stats: {
@@ -283,6 +340,12 @@ router.get(
         escalation_rate: totalConversations > 0 ? escalatedCount / totalConversations : 0,
         avg_satisfaction: avgSatisfaction,
         unique_users: uniqueUsers,
+        token_usage: {
+          total_prompt_tokens: tokenTotals.prompt_tokens,
+          total_completion_tokens: tokenTotals.completion_tokens,
+          total_tokens: tokenTotals.total_tokens,
+          avg_tokens_per_response: avgTokensPerResponse,
+        },
       },
     });
   })

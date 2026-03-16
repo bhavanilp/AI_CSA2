@@ -1,5 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import axios from 'axios'
+import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
 import './App.css'
 
 function App() {
@@ -8,11 +10,14 @@ function App() {
   const [urlToIngest, setUrlToIngest] = useState('https://en.wikipedia.org/wiki/Hyderabad')
   const [isLoading, setIsLoading] = useState(false)
   const [isIngesting, setIsIngesting] = useState(false)
+  const [thinkingEnabled, setThinkingEnabled] = useState(false)
   const [sessionId] = useState(`session-${Date.now()}`)
   const [conversationId, setConversationId] = useState('')
   const [token, setToken] = useState('')
   const [logs, setLogs] = useState([])
   const [showLogs, setShowLogs] = useState(false)
+  const [feedbackState, setFeedbackState] = useState({})
+  const [copyState, setCopyState] = useState({})
   const messagesEndRef = useRef(null)
   const logsEndRef = useRef(null)
 
@@ -178,6 +183,7 @@ function App() {
           conversation_id: conversationId,
           session_id: sessionId,
           message: inputMessage,
+          include_thinking: thinkingEnabled,
         }),
       })
 
@@ -245,13 +251,18 @@ function App() {
             setMessages(prev =>
               prev.map(msg =>
                 msg.id === placeholderId
-                  ? { ...msg, content: msg.content + (parsed.token || '') }
+                  ? {
+                      ...msg,
+                      content: msg.content + (parsed.token || ''),
+                      finalAnswer: (msg.finalAnswer || '') + (parsed.token || ''),
+                    }
                   : msg
               )
             )
           } else if (eventName === 'done') {
             const confidence = parsed.confidence ?? 0
             const confidenceReason = parsed.confidence_reason || ''
+            const finalAnswer = parsed.final_answer || ''
             const parsedResponseTimeSec = Number(parsed.response_time_sec)
             const parsedResponseTimeMs = Number(parsed.response_time_ms)
             const responseTimeSec = Number.isFinite(parsedResponseTimeSec)
@@ -262,12 +273,17 @@ function App() {
             setMessages(prev =>
               prev.map(msg => {
                 if (msg.id === placeholderId) {
+                  const existingAnswer = (msg.finalAnswer || msg.content || '')
+                  const resolvedAnswer = existingAnswer.trim().length > 0 ? existingAnswer : finalAnswer
                   return {
                     ...msg,
+                    content: resolvedAnswer,
+                    finalAnswer: resolvedAnswer,
                     streaming: false,
                     confidence,
                     confidenceReason,
                     responseTimeSec,
+                    tokenUsage: parsed.token_usage,
                   }
                 }
 
@@ -333,12 +349,13 @@ function App() {
   }
 
   const parseMessageContent = (msg) => {
+    const resolvedText = msg.finalAnswer || msg.content || ''
     // Native thinking (from think_token SSE events) takes priority
     if (msg.nativeThinking) {
-      return { thinking: msg.nativeThinking, answer: msg.content, stillThinking: false }
+      return { thinking: msg.nativeThinking, answer: resolvedText, stillThinking: false }
     }
     // Parse inline <think>...</think> from response tokens
-    const raw = msg.content || ''
+    const raw = resolvedText
     const openIdx = raw.indexOf('<think>')
     if (openIdx === -1) return { thinking: '', answer: raw, stillThinking: false }
     const closeIdx = raw.indexOf('</think>')
@@ -366,6 +383,55 @@ function App() {
     }
 
     return 'N/A'
+  }
+
+  const submitFeedback = async (messageId, isPositive) => {
+    if (!conversationId || !token) return
+
+    setFeedbackState(prev => ({ ...prev, [messageId]: 'saving' }))
+
+    try {
+      await axios.post(
+        `/api/admin/conversations/${conversationId}/feedback`,
+        {
+          rating: isPositive ? 5 : 2,
+          is_correct: isPositive,
+          comment: isPositive ? 'Marked as helpful by user' : 'Marked as incorrect by user'
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        }
+      )
+
+      setFeedbackState(prev => ({ ...prev, [messageId]: isPositive ? 'up' : 'down' }))
+      addLog('chat', 'Feedback submitted', {
+        conversation_id: conversationId,
+        message_id: messageId,
+        feedback: isPositive ? 'thumbs_up' : 'thumbs_down'
+      })
+    } catch (error) {
+      setFeedbackState(prev => ({ ...prev, [messageId]: 'error' }))
+      addLog('error', 'Feedback submission failed', {
+        message_id: messageId,
+        error: error.response?.data?.error || error.message
+      })
+    }
+  }
+
+  const copyResponse = async (messageId, text) => {
+    if (!text) return
+
+    try {
+      await navigator.clipboard.writeText(text)
+      setCopyState(prev => ({ ...prev, [messageId]: 'copied' }))
+      setTimeout(() => {
+        setCopyState(prev => ({ ...prev, [messageId]: '' }))
+      }, 1500)
+    } catch {
+      setCopyState(prev => ({ ...prev, [messageId]: 'error' }))
+    }
   }
 
   return (
@@ -413,6 +479,7 @@ function App() {
             <div className="messages">
               {messages.map((msg, index) => {
                 const parsed = msg.role === 'assistant' ? parseMessageContent(msg) : null
+                const answerText = msg.role === 'assistant' ? (parsed?.answer || msg.finalAnswer || msg.content || '') : ''
                 return (
                 <div key={msg.id ?? index} className={`message ${msg.role}`}>
                   <div className="message-content">
@@ -456,7 +523,13 @@ function App() {
                       </details>
                     )}
                     <div className="message-text">
-                      {msg.role === 'assistant' ? parsed?.answer : msg.content}
+                      {msg.role === 'assistant' ? (
+                        <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                          {parsed?.answer || msg.finalAnswer || msg.content || ''}
+                        </ReactMarkdown>
+                      ) : (
+                        msg.content
+                      )}
                       {msg.streaming && !parsed?.stillThinking && <span className="streaming-cursor" />}
                     </div>
                     {!msg.streaming && msg.sources && msg.sources.length > 0 && (
@@ -480,6 +553,41 @@ function App() {
                         {msg.shouldEscalate && ' ⚠️ Escalation recommended'}
                       </div>
                     )}
+                    {!msg.streaming && msg.role === 'assistant' && msg.requestId && msg.tokenUsage && (
+                      <div className="metadata">
+                        Tokens: prompt {msg.tokenUsage.prompt_tokens || 0}, completion {msg.tokenUsage.completion_tokens || 0}, total {msg.tokenUsage.total_tokens || 0}
+                      </div>
+                    )}
+                    {!msg.streaming && msg.role === 'assistant' && msg.requestId && (
+                      <div className="message-actions">
+                        <button
+                          type="button"
+                          className={`action-btn ${feedbackState[msg.id] === 'up' ? 'active' : ''}`}
+                          onClick={() => submitFeedback(msg.id, true)}
+                          disabled={feedbackState[msg.id] === 'saving'}
+                          title="Helpful"
+                        >
+                          👍
+                        </button>
+                        <button
+                          type="button"
+                          className={`action-btn ${feedbackState[msg.id] === 'down' ? 'active' : ''}`}
+                          onClick={() => submitFeedback(msg.id, false)}
+                          disabled={feedbackState[msg.id] === 'saving'}
+                          title="Not helpful"
+                        >
+                          👎
+                        </button>
+                        <button
+                          type="button"
+                          className="action-btn"
+                          onClick={() => copyResponse(msg.id, answerText)}
+                          title="Copy response"
+                        >
+                          {copyState[msg.id] === 'copied' ? '✅' : '📋'}
+                        </button>
+                      </div>
+                    )}
                     {msg.role === 'user' && typeof msg.responseTimeSec === 'number' && (
                       <div className="metadata">Round-trip for this request: {msg.responseTimeSec.toFixed(2)}s</div>
                     )}
@@ -500,6 +608,15 @@ function App() {
 
             {/* Chat Input */}
             <form onSubmit={handleSendMessage} className="input-form">
+              <label className="thinking-toggle">
+                <input
+                  type="checkbox"
+                  checked={thinkingEnabled}
+                  onChange={(e) => setThinkingEnabled(e.target.checked)}
+                  disabled={isLoading}
+                />
+                <span>Show thinking</span>
+              </label>
               <input
                 type="text"
                 value={inputMessage}

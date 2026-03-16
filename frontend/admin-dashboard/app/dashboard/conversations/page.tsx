@@ -33,6 +33,11 @@ interface ConversationMessage {
   confidence_reason?: string;
   response_time_sec?: number;
   response_time_ms?: number;
+  token_usage?: {
+    prompt_tokens?: number;
+    completion_tokens?: number;
+    total_tokens?: number;
+  };
   sources?: ConversationSource[];
 }
 
@@ -390,6 +395,12 @@ export default function ConversationsPage() {
                         <p className="mt-1 text-xs text-gray-600">
                           Confidence: {(msg.confidence * 100).toFixed(1)}%
                           {msg.confidence_reason ? ` (${msg.confidence_reason})` : ''}
+                        </p>
+                      )}
+
+                      {msg.role === 'bot' && msg.token_usage && (
+                        <p className="mt-1 text-xs text-gray-600">
+                          Tokens: prompt {msg.token_usage.prompt_tokens || 0}, completion {msg.token_usage.completion_tokens || 0}, total {msg.token_usage.total_tokens || 0}
                         </p>
                       )}
 

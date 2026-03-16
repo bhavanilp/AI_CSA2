@@ -6,7 +6,7 @@
       "email": "admin@aicsa.local",
       "password_hash": "$2a$10$03Z1CrjMPW0EdTdCKJH6uu8HhcY6ozjJ7PjXp3HvfgLYNgQYBGAi.",
       "role": "admin",
-      "last_login": "2026-03-13T17:03:45.652Z"
+      "last_login": "2026-03-15T22:30:39.840Z"
     }
   ],
   "conversations": [
@@ -230,6 +230,1500 @@
       "feedback_comment": null,
       "created_at": "2026-03-13T16:48:18.245Z",
       "updated_at": "2026-03-13T16:49:12.300Z"
+    },
+    {
+      "id": "3c1ef054-b9d3-45e2-a9d8-7f9acdd08132",
+      "organization_id": "default",
+      "session_id": "session-1773590462989",
+      "user_email": null,
+      "user_name": null,
+      "messages": [
+        {
+          "role": "user",
+          "content": "Where is mumbai",
+          "timestamp": "2026-03-15T16:02:15.513Z"
+        },
+        {
+          "role": "bot",
+          "content": "Mumbai is the capital city of the Indian state of Maharashtra.",
+          "timestamp": "2026-03-15T16:02:15.513Z",
+          "confidence": 0.7208407419130657,
+          "confidence_reason": "avg similarity 0.72; no major penalties",
+          "response_time_sec": 63.366,
+          "sources": [
+            {
+              "source_id": "7c0ec81e-e6fe-4579-a563-c35c39fc5a5a",
+              "name": "https://en.wikipedia.org/wiki/Mumbai",
+              "url": "https://en.wikipedia.org/wiki/Mumbai",
+              "confidence_min": 0.6931416822800893,
+              "confidence_max": 0.7725280107552851,
+              "match_count": 5
+            }
+          ]
+        },
+        {
+          "role": "user",
+          "content": "Where is berlin",
+          "timestamp": "2026-03-15T16:04:00.987Z"
+        },
+        {
+          "role": "bot",
+          "content": "_Note: This answer does not use vector store context._\n\nBerlin is a city located in Germany.",
+          "timestamp": "2026-03-15T16:04:00.987Z",
+          "confidence": 0.5,
+          "confidence_reason": "No relevant vector-store evidence; baseline confidence applied.",
+          "response_time_sec": 31.264,
+          "sources": []
+        },
+        {
+          "role": "user",
+          "content": "What is the population of Hyderabad",
+          "timestamp": "2026-03-15T16:06:52.609Z"
+        },
+        {
+          "role": "bot",
+          "content": "_Note: This answer does not use vector store context._\n\nAs of recent estimates, the population of Hyderabad is approximately **7.5 million**.",
+          "timestamp": "2026-03-15T16:06:52.609Z",
+          "confidence": 0.5,
+          "confidence_reason": "No relevant vector-store evidence; baseline confidence applied.",
+          "response_time_sec": 96.765,
+          "sources": []
+        },
+        {
+          "role": "user",
+          "content": "What is the population of Mumbai",
+          "timestamp": "2026-03-15T16:08:37.778Z"
+        },
+        {
+          "role": "bot",
+          "content": "_Note: This answer does not use vector store context._\n\n",
+          "timestamp": "2026-03-15T16:08:37.778Z",
+          "confidence": 0.5,
+          "confidence_reason": "No relevant vector-store evidence; baseline confidence applied.",
+          "response_time_sec": 92.781,
+          "sources": []
+        }
+      ],
+      "message_count": 8,
+      "was_escalated": false,
+      "feedback_rating": null,
+      "feedback_is_correct": null,
+      "feedback_comment": null,
+      "created_at": "2026-03-15T16:02:15.514Z",
+      "updated_at": "2026-03-15T16:08:37.778Z"
+    },
+    {
+      "id": "72445228-fe51-4755-a88b-3c0154807687",
+      "organization_id": "default",
+      "session_id": "sess-debug-pop",
+      "user_email": null,
+      "user_name": null,
+      "messages": [
+        {
+          "role": "user",
+          "content": "What is the population of Hyderabad",
+          "timestamp": "2026-03-15T16:12:26.375Z"
+        },
+        {
+          "role": "bot",
+          "content": "_Note: This answer does not use vector store context._\n\n",
+          "timestamp": "2026-03-15T16:12:26.375Z",
+          "confidence": 0.5,
+          "confidence_reason": "No relevant vector-store evidence; baseline confidence applied.",
+          "response_time_sec": 95.319,
+          "sources": []
+        },
+        {
+          "role": "user",
+          "content": "What is the population of Mumbai",
+          "timestamp": "2026-03-15T16:14:05.995Z"
+        },
+        {
+          "role": "bot",
+          "content": "_Note: This answer does not use vector store context._\n\n",
+          "timestamp": "2026-03-15T16:14:05.996Z",
+          "confidence": 0.5,
+          "confidence_reason": "No relevant vector-store evidence; baseline confidence applied.",
+          "response_time_sec": 99.59,
+          "sources": []
+        },
+        {
+          "role": "user",
+          "content": "What is the population of Mumbai",
+          "timestamp": "2026-03-15T16:39:51.375Z"
+        },
+        {
+          "role": "bot",
+          "content": "",
+          "timestamp": "2026-03-15T16:39:51.375Z",
+          "confidence": 0.36934876850584236,
+          "confidence_reason": "avg similarity 0.57; short-answer penalty 0.20; below threshold 0.60.",
+          "response_time_sec": 91.712,
+          "sources": [
+            {
+              "source_id": "2a12e18d-b19c-4a5e-bf75-215e7ae4a2ed",
+              "name": "https://en.wikipedia.org/wiki/Hyderabad",
+              "url": "https://en.wikipedia.org/wiki/Hyderabad",
+              "confidence_min": 0.590206813779614,
+              "confidence_max": 0.590206813779614,
+              "match_count": 1
+            },
+            {
+              "source_id": "7c0ec81e-e6fe-4579-a563-c35c39fc5a5a",
+              "name": "https://en.wikipedia.org/wiki/Mumbai",
+              "url": "https://en.wikipedia.org/wiki/Mumbai",
+              "confidence_min": 0.5516587677522387,
+              "confidence_max": 0.5661807239856744,
+              "match_count": 2
+            }
+          ]
+        }
+      ],
+      "message_count": 6,
+      "was_escalated": true,
+      "feedback_rating": null,
+      "feedback_is_correct": null,
+      "feedback_comment": null,
+      "created_at": "2026-03-15T16:12:26.375Z",
+      "updated_at": "2026-03-15T16:39:51.375Z",
+      "escalation_reason": "confidence_low"
+    },
+    {
+      "id": "119f2aea-5bfd-4520-b55d-55ea78195c92",
+      "organization_id": "default",
+      "session_id": "session-1773592779658",
+      "user_email": null,
+      "user_name": null,
+      "messages": [
+        {
+          "role": "user",
+          "content": "What is the population of Hyderabad",
+          "timestamp": "2026-03-15T16:41:06.268Z"
+        },
+        {
+          "role": "bot",
+          "content": "_Note: This answer does not use vector store context._\n\n",
+          "timestamp": "2026-03-15T16:41:06.268Z",
+          "confidence": 0.5,
+          "confidence_reason": "No relevant vector-store evidence; baseline confidence applied.",
+          "response_time_sec": 73.925,
+          "sources": []
+        }
+      ],
+      "message_count": 2,
+      "was_escalated": false,
+      "feedback_rating": null,
+      "feedback_is_correct": null,
+      "feedback_comment": null,
+      "created_at": "2026-03-15T16:41:06.268Z",
+      "updated_at": "2026-03-15T16:41:06.268Z"
+    },
+    {
+      "id": "fb4e586b-3a58-4a20-bcb9-9366a00a6451",
+      "organization_id": "default",
+      "session_id": "sess-debug-pop-fix2",
+      "user_email": null,
+      "user_name": null,
+      "messages": [
+        {
+          "role": "user",
+          "content": "What is the population of Hyderabad",
+          "timestamp": "2026-03-15T16:42:29.953Z"
+        },
+        {
+          "role": "bot",
+          "content": "",
+          "timestamp": "2026-03-15T16:42:29.953Z",
+          "confidence": 0.36934876850584236,
+          "confidence_reason": "avg similarity 0.57; short-answer penalty 0.20; below threshold 0.60.",
+          "response_time_sec": 117.794,
+          "sources": [
+            {
+              "source_id": "2a12e18d-b19c-4a5e-bf75-215e7ae4a2ed",
+              "name": "https://en.wikipedia.org/wiki/Hyderabad",
+              "url": "https://en.wikipedia.org/wiki/Hyderabad",
+              "confidence_min": 0.590206813779614,
+              "confidence_max": 0.590206813779614,
+              "match_count": 1
+            },
+            {
+              "source_id": "7c0ec81e-e6fe-4579-a563-c35c39fc5a5a",
+              "name": "https://en.wikipedia.org/wiki/Mumbai",
+              "url": "https://en.wikipedia.org/wiki/Mumbai",
+              "confidence_min": 0.5516587677522387,
+              "confidence_max": 0.5661807239856744,
+              "match_count": 2
+            }
+          ]
+        },
+        {
+          "role": "user",
+          "content": "What is the population of Mumbai",
+          "timestamp": "2026-03-15T16:43:57.228Z"
+        },
+        {
+          "role": "bot",
+          "content": "",
+          "timestamp": "2026-03-15T16:43:57.228Z",
+          "confidence": 0.36934876850584236,
+          "confidence_reason": "avg similarity 0.57; short-answer penalty 0.20; below threshold 0.60.",
+          "response_time_sec": 86.258,
+          "sources": [
+            {
+              "source_id": "2a12e18d-b19c-4a5e-bf75-215e7ae4a2ed",
+              "name": "https://en.wikipedia.org/wiki/Hyderabad",
+              "url": "https://en.wikipedia.org/wiki/Hyderabad",
+              "confidence_min": 0.590206813779614,
+              "confidence_max": 0.590206813779614,
+              "match_count": 1
+            },
+            {
+              "source_id": "7c0ec81e-e6fe-4579-a563-c35c39fc5a5a",
+              "name": "https://en.wikipedia.org/wiki/Mumbai",
+              "url": "https://en.wikipedia.org/wiki/Mumbai",
+              "confidence_min": 0.5516587677522387,
+              "confidence_max": 0.5661807239856744,
+              "match_count": 2
+            }
+          ]
+        }
+      ],
+      "message_count": 4,
+      "was_escalated": true,
+      "escalation_reason": "confidence_low",
+      "feedback_rating": 2,
+      "feedback_is_correct": false,
+      "feedback_comment": "Marked for review by admin",
+      "created_at": "2026-03-15T16:42:29.953Z",
+      "updated_at": "2026-03-15T16:43:57.228Z"
+    },
+    {
+      "id": "a11a1999-68d7-4f8f-ba17-26201bdfdcb8",
+      "organization_id": "default",
+      "session_id": "sess-debug-pop-fix3",
+      "user_email": null,
+      "user_name": null,
+      "messages": [
+        {
+          "role": "user",
+          "content": "What is the population of Hyderabad",
+          "timestamp": "2026-03-15T16:45:00.539Z"
+        },
+        {
+          "role": "bot",
+          "content": "The provided context does not contain information about the population of Hyderabad.",
+          "timestamp": "2026-03-15T16:45:00.539Z",
+          "confidence": 0.2693487685058424,
+          "confidence_reason": "avg similarity 0.57; hedge phrase penalty 0.30; below threshold 0.60.",
+          "response_time_sec": 8.004,
+          "sources": [
+            {
+              "source_id": "2a12e18d-b19c-4a5e-bf75-215e7ae4a2ed",
+              "name": "https://en.wikipedia.org/wiki/Hyderabad",
+              "url": "https://en.wikipedia.org/wiki/Hyderabad",
+              "confidence_min": 0.590206813779614,
+              "confidence_max": 0.590206813779614,
+              "match_count": 1
+            },
+            {
+              "source_id": "7c0ec81e-e6fe-4579-a563-c35c39fc5a5a",
+              "name": "https://en.wikipedia.org/wiki/Mumbai",
+              "url": "https://en.wikipedia.org/wiki/Mumbai",
+              "confidence_min": 0.5516587677522387,
+              "confidence_max": 0.5661807239856744,
+              "match_count": 2
+            }
+          ]
+        },
+        {
+          "role": "user",
+          "content": "What is the population of Mumbai",
+          "timestamp": "2026-03-15T16:45:10.093Z"
+        },
+        {
+          "role": "bot",
+          "content": "Mumbai has an estimated population of 12.5 million people as of 2008.",
+          "timestamp": "2026-03-15T16:45:10.093Z",
+          "confidence": 0.5693487685058424,
+          "confidence_reason": "avg similarity 0.57; no major penalties; below threshold 0.60.",
+          "response_time_sec": 8.53,
+          "sources": [
+            {
+              "source_id": "2a12e18d-b19c-4a5e-bf75-215e7ae4a2ed",
+              "name": "https://en.wikipedia.org/wiki/Hyderabad",
+              "url": "https://en.wikipedia.org/wiki/Hyderabad",
+              "confidence_min": 0.590206813779614,
+              "confidence_max": 0.590206813779614,
+              "match_count": 1
+            },
+            {
+              "source_id": "7c0ec81e-e6fe-4579-a563-c35c39fc5a5a",
+              "name": "https://en.wikipedia.org/wiki/Mumbai",
+              "url": "https://en.wikipedia.org/wiki/Mumbai",
+              "confidence_min": 0.5516587677522387,
+              "confidence_max": 0.5661807239856744,
+              "match_count": 2
+            }
+          ]
+        }
+      ],
+      "message_count": 4,
+      "was_escalated": true,
+      "escalation_reason": "confidence_low",
+      "feedback_rating": null,
+      "feedback_is_correct": null,
+      "feedback_comment": null,
+      "created_at": "2026-03-15T16:45:00.539Z",
+      "updated_at": "2026-03-15T16:45:10.094Z"
+    },
+    {
+      "id": "b1a47d84-6241-4552-ab59-f84f282dbde7",
+      "organization_id": "default",
+      "session_id": "sess-debug-pop-fix4",
+      "user_email": null,
+      "user_name": null,
+      "messages": [
+        {
+          "role": "user",
+          "content": "What is the population of Hyderabad",
+          "timestamp": "2026-03-15T16:45:56.892Z"
+        },
+        {
+          "role": "bot",
+          "content": "The provided context does not contain information about the population of Hyderabad.",
+          "timestamp": "2026-03-15T16:45:56.892Z",
+          "confidence": 0.22361053826101923,
+          "confidence_reason": "avg similarity 0.52; hedge phrase penalty 0.30; below threshold 0.60.",
+          "response_time_sec": 7.303,
+          "sources": [
+            {
+              "source_id": "2a12e18d-b19c-4a5e-bf75-215e7ae4a2ed",
+              "name": "https://en.wikipedia.org/wiki/Hyderabad",
+              "url": "https://en.wikipedia.org/wiki/Hyderabad",
+              "confidence_min": 0.5013787747508864,
+              "confidence_max": 0.590206813779614,
+              "match_count": 2
+            },
+            {
+              "source_id": "7c0ec81e-e6fe-4579-a563-c35c39fc5a5a",
+              "name": "https://en.wikipedia.org/wiki/Mumbai",
+              "url": "https://en.wikipedia.org/wiki/Mumbai",
+              "confidence_min": 0.5006191976378556,
+              "confidence_max": 0.5661807239856744,
+              "match_count": 3
+            }
+          ]
+        },
+        {
+          "role": "user",
+          "content": "What is the population of Mumbai",
+          "timestamp": "2026-03-15T16:46:05.634Z"
+        },
+        {
+          "role": "bot",
+          "content": "The population of Mumbai is estimated at 12.5 million.",
+          "timestamp": "2026-03-15T16:46:05.634Z",
+          "confidence": 0.4340873590999392,
+          "confidence_reason": "avg similarity 0.51; short-answer penalty 0.08; below threshold 0.60.",
+          "response_time_sec": 7.717,
+          "sources": [
+            {
+              "source_id": "2a12e18d-b19c-4a5e-bf75-215e7ae4a2ed",
+              "name": "https://en.wikipedia.org/wiki/Hyderabad",
+              "url": "https://en.wikipedia.org/wiki/Hyderabad",
+              "confidence_min": 0.590206813779614,
+              "confidence_max": 0.590206813779614,
+              "match_count": 1
+            },
+            {
+              "source_id": "7c0ec81e-e6fe-4579-a563-c35c39fc5a5a",
+              "name": "https://en.wikipedia.org/wiki/Mumbai",
+              "url": "https://en.wikipedia.org/wiki/Mumbai",
+              "confidence_min": 0.48155278215943553,
+              "confidence_max": 0.5661807239856744,
+              "match_count": 4
+            }
+          ]
+        }
+      ],
+      "message_count": 4,
+      "was_escalated": true,
+      "escalation_reason": "confidence_low",
+      "feedback_rating": null,
+      "feedback_is_correct": null,
+      "feedback_comment": null,
+      "created_at": "2026-03-15T16:45:56.892Z",
+      "updated_at": "2026-03-15T16:46:05.634Z"
+    },
+    {
+      "id": "5759c783-780f-4567-9232-0f318b9254d3",
+      "organization_id": "default",
+      "session_id": "sess-debug-pop-fix5",
+      "user_email": null,
+      "user_name": null,
+      "messages": [
+        {
+          "role": "user",
+          "content": "What is the population of Hyderabad",
+          "timestamp": "2026-03-15T16:47:07.278Z"
+        },
+        {
+          "role": "bot",
+          "content": "Based on the provided context, there is no specific population figure for Hyderabad mentioned. The text only states that Dharavi in Mumbai has about a million people and provides demographic data for Hyderabad regarding its police commissionerates, university, and slum dwellers (5,633,709 as per the 2011 census).",
+          "timestamp": "2026-03-15T16:47:07.278Z",
+          "confidence": 0.5236105382610192,
+          "confidence_reason": "avg similarity 0.52; no major penalties; below threshold 0.60.",
+          "response_time_sec": 16.218,
+          "sources": [
+            {
+              "source_id": "2a12e18d-b19c-4a5e-bf75-215e7ae4a2ed",
+              "name": "https://en.wikipedia.org/wiki/Hyderabad",
+              "url": "https://en.wikipedia.org/wiki/Hyderabad",
+              "confidence_min": 0.5013787747508864,
+              "confidence_max": 0.590206813779614,
+              "match_count": 2
+            },
+            {
+              "source_id": "7c0ec81e-e6fe-4579-a563-c35c39fc5a5a",
+              "name": "https://en.wikipedia.org/wiki/Mumbai",
+              "url": "https://en.wikipedia.org/wiki/Mumbai",
+              "confidence_min": 0.5006191976378556,
+              "confidence_max": 0.5661807239856744,
+              "match_count": 3
+            }
+          ]
+        },
+        {
+          "role": "user",
+          "content": "What is the population of Mumbai",
+          "timestamp": "2026-03-15T16:47:22.341Z"
+        },
+        {
+          "role": "bot",
+          "content": "Mumbai has an estimated population of 12.5 million people in its city proper.",
+          "timestamp": "2026-03-15T16:47:22.341Z",
+          "confidence": 0.5041820005159103,
+          "confidence_reason": "avg similarity 0.50; no major penalties; below threshold 0.60.",
+          "response_time_sec": 14.028,
+          "sources": [
+            {
+              "source_id": "7c0ec81e-e6fe-4579-a563-c35c39fc5a5a",
+              "name": "https://en.wikipedia.org/wiki/Mumbai",
+              "url": "https://en.wikipedia.org/wiki/Mumbai",
+              "confidence_min": 0.473676707761429,
+              "confidence_max": 0.5661807239856744,
+              "match_count": 5
+            }
+          ]
+        }
+      ],
+      "message_count": 4,
+      "was_escalated": true,
+      "escalation_reason": "confidence_low",
+      "feedback_rating": null,
+      "feedback_is_correct": null,
+      "feedback_comment": null,
+      "created_at": "2026-03-15T16:47:07.278Z",
+      "updated_at": "2026-03-15T16:47:22.341Z"
+    },
+    {
+      "id": "151b63be-1d7b-4e22-9016-ce8a60f72c57",
+      "organization_id": "default",
+      "session_id": "session-1773593202048",
+      "user_email": null,
+      "user_name": null,
+      "messages": [
+        {
+          "role": "user",
+          "content": "Where is Hyderabad",
+          "timestamp": "2026-03-15T16:47:09.807Z"
+        },
+        {
+          "role": "bot",
+          "content": "_Note: This answer does not use vector store context._\n\nHyderabad is the capital city of the Indian state of Telangana, located in South India.",
+          "timestamp": "2026-03-15T16:47:09.807Z",
+          "confidence": 0.5,
+          "confidence_reason": "No relevant vector-store evidence; baseline confidence applied.",
+          "response_time_sec": 4.192,
+          "sources": []
+        }
+      ],
+      "message_count": 2,
+      "was_escalated": false,
+      "feedback_rating": null,
+      "feedback_is_correct": null,
+      "feedback_comment": null,
+      "created_at": "2026-03-15T16:47:09.807Z",
+      "updated_at": "2026-03-15T16:47:09.807Z"
+    },
+    {
+      "id": "4397c1c9-e6fa-4929-bae2-150278fc846c",
+      "organization_id": "default",
+      "session_id": "sess-debug-pop-fix6",
+      "user_email": null,
+      "user_name": null,
+      "messages": [
+        {
+          "role": "user",
+          "content": "What is the population of Hyderabad",
+          "timestamp": "2026-03-15T16:48:01.732Z"
+        },
+        {
+          "role": "bot",
+          "content": "Based on the context provided, there is no specific population figure for Hyderabad mentioned. The text only states that Dharavi, located in central Mumbai, is the largest slum with about a million people.",
+          "timestamp": "2026-03-15T16:48:01.732Z",
+          "confidence": 0.5236105382610192,
+          "confidence_reason": "avg similarity 0.52; no major penalties; below threshold 0.60.",
+          "response_time_sec": 14.527,
+          "sources": [
+            {
+              "source_id": "2a12e18d-b19c-4a5e-bf75-215e7ae4a2ed",
+              "name": "https://en.wikipedia.org/wiki/Hyderabad",
+              "url": "https://en.wikipedia.org/wiki/Hyderabad",
+              "confidence_min": 0.5013787747508864,
+              "confidence_max": 0.590206813779614,
+              "match_count": 2
+            },
+            {
+              "source_id": "7c0ec81e-e6fe-4579-a563-c35c39fc5a5a",
+              "name": "https://en.wikipedia.org/wiki/Mumbai",
+              "url": "https://en.wikipedia.org/wiki/Mumbai",
+              "confidence_min": 0.5006191976378556,
+              "confidence_max": 0.5661807239856744,
+              "match_count": 3
+            }
+          ]
+        },
+        {
+          "role": "user",
+          "content": "What is the population of Mumbai",
+          "timestamp": "2026-03-15T16:48:15.317Z"
+        },
+        {
+          "role": "bot",
+          "content": "Mumbai has an estimated population of 12.5 million people.",
+          "timestamp": "2026-03-15T16:48:15.317Z",
+          "confidence": 0.4241820005159103,
+          "confidence_reason": "avg similarity 0.50; short-answer penalty 0.08; below threshold 0.60.",
+          "response_time_sec": 12.555,
+          "sources": [
+            {
+              "source_id": "7c0ec81e-e6fe-4579-a563-c35c39fc5a5a",
+              "name": "https://en.wikipedia.org/wiki/Mumbai",
+              "url": "https://en.wikipedia.org/wiki/Mumbai",
+              "confidence_min": 0.473676707761429,
+              "confidence_max": 0.5661807239856744,
+              "match_count": 5
+            }
+          ]
+        }
+      ],
+      "message_count": 4,
+      "was_escalated": true,
+      "escalation_reason": "confidence_low",
+      "feedback_rating": null,
+      "feedback_is_correct": null,
+      "feedback_comment": null,
+      "created_at": "2026-03-15T16:48:01.733Z",
+      "updated_at": "2026-03-15T16:48:15.317Z"
+    },
+    {
+      "id": "debe5e9d-8999-412e-9385-0467f08a192a",
+      "organization_id": "default",
+      "session_id": "sess-debug-pop-fix7",
+      "user_email": null,
+      "user_name": null,
+      "messages": [
+        {
+          "role": "user",
+          "content": "What is the population of Hyderabad",
+          "timestamp": "2026-03-15T16:48:46.203Z"
+        },
+        {
+          "role": "bot",
+          "content": "The provided context does not contain information about the population of Hyderabad.",
+          "timestamp": "2026-03-15T16:48:46.203Z",
+          "confidence": 0.22361053826101923,
+          "confidence_reason": "avg similarity 0.52; hedge phrase penalty 0.30; below threshold 0.60.",
+          "response_time_sec": 8.275,
+          "sources": [
+            {
+              "source_id": "2a12e18d-b19c-4a5e-bf75-215e7ae4a2ed",
+              "name": "https://en.wikipedia.org/wiki/Hyderabad",
+              "url": "https://en.wikipedia.org/wiki/Hyderabad",
+              "confidence_min": 0.5013787747508864,
+              "confidence_max": 0.590206813779614,
+              "match_count": 2
+            },
+            {
+              "source_id": "7c0ec81e-e6fe-4579-a563-c35c39fc5a5a",
+              "name": "https://en.wikipedia.org/wiki/Mumbai",
+              "url": "https://en.wikipedia.org/wiki/Mumbai",
+              "confidence_min": 0.5006191976378556,
+              "confidence_max": 0.5661807239856744,
+              "match_count": 3
+            }
+          ]
+        },
+        {
+          "role": "user",
+          "content": "What is the population of Mumbai",
+          "timestamp": "2026-03-15T16:48:59.784Z"
+        },
+        {
+          "role": "bot",
+          "content": "Mumbai has an estimated population of 12.5 million people in its city proper.",
+          "timestamp": "2026-03-15T16:48:59.784Z",
+          "confidence": 0.5041820005159103,
+          "confidence_reason": "avg similarity 0.50; no major penalties; below threshold 0.60.",
+          "response_time_sec": 12.569,
+          "sources": [
+            {
+              "source_id": "7c0ec81e-e6fe-4579-a563-c35c39fc5a5a",
+              "name": "https://en.wikipedia.org/wiki/Mumbai",
+              "url": "https://en.wikipedia.org/wiki/Mumbai",
+              "confidence_min": 0.473676707761429,
+              "confidence_max": 0.5661807239856744,
+              "match_count": 5
+            }
+          ]
+        }
+      ],
+      "message_count": 4,
+      "was_escalated": true,
+      "escalation_reason": "confidence_low",
+      "feedback_rating": null,
+      "feedback_is_correct": null,
+      "feedback_comment": null,
+      "created_at": "2026-03-15T16:48:46.203Z",
+      "updated_at": "2026-03-15T16:48:59.784Z"
+    },
+    {
+      "id": "803d29a1-e333-4233-8d5e-0a9ed7b5c69a",
+      "organization_id": "default",
+      "session_id": "sess-debug-pop-fix8",
+      "user_email": null,
+      "user_name": null,
+      "messages": [
+        {
+          "role": "user",
+          "content": "What is the population of Hyderabad",
+          "timestamp": "2026-03-15T16:49:25.731Z"
+        },
+        {
+          "role": "bot",
+          "content": "The provided context does not contain information about the population of Hyderabad.",
+          "timestamp": "2026-03-15T16:49:25.731Z",
+          "confidence": 0.22361053826101923,
+          "confidence_reason": "avg similarity 0.52; hedge phrase penalty 0.30; below threshold 0.60.",
+          "response_time_sec": 8.604,
+          "sources": [
+            {
+              "source_id": "2a12e18d-b19c-4a5e-bf75-215e7ae4a2ed",
+              "name": "https://en.wikipedia.org/wiki/Hyderabad",
+              "url": "https://en.wikipedia.org/wiki/Hyderabad",
+              "confidence_min": 0.5013787747508864,
+              "confidence_max": 0.590206813779614,
+              "match_count": 2
+            },
+            {
+              "source_id": "7c0ec81e-e6fe-4579-a563-c35c39fc5a5a",
+              "name": "https://en.wikipedia.org/wiki/Mumbai",
+              "url": "https://en.wikipedia.org/wiki/Mumbai",
+              "confidence_min": 0.5006191976378556,
+              "confidence_max": 0.5661807239856744,
+              "match_count": 3
+            }
+          ]
+        },
+        {
+          "role": "user",
+          "content": "What is the population of Mumbai",
+          "timestamp": "2026-03-15T16:49:39.201Z"
+        },
+        {
+          "role": "bot",
+          "content": "Mumbai has an estimated population of 12.5 million (1.25 crore).",
+          "timestamp": "2026-03-15T16:49:39.201Z",
+          "confidence": 0.5041820005159103,
+          "confidence_reason": "avg similarity 0.50; no major penalties; below threshold 0.60.",
+          "response_time_sec": 12.45,
+          "sources": [
+            {
+              "source_id": "7c0ec81e-e6fe-4579-a563-c35c39fc5a5a",
+              "name": "https://en.wikipedia.org/wiki/Mumbai",
+              "url": "https://en.wikipedia.org/wiki/Mumbai",
+              "confidence_min": 0.473676707761429,
+              "confidence_max": 0.5661807239856744,
+              "match_count": 5
+            }
+          ]
+        }
+      ],
+      "message_count": 4,
+      "was_escalated": true,
+      "escalation_reason": "confidence_low",
+      "feedback_rating": null,
+      "feedback_is_correct": null,
+      "feedback_comment": null,
+      "created_at": "2026-03-15T16:49:25.733Z",
+      "updated_at": "2026-03-15T16:49:39.201Z"
+    },
+    {
+      "id": "84b9b9ac-106e-4dd2-9433-919f003c3c7e",
+      "organization_id": "default",
+      "session_id": "sess-debug-pop-fix9",
+      "user_email": null,
+      "user_name": null,
+      "messages": [
+        {
+          "role": "user",
+          "content": "What is the population of Hyderabad",
+          "timestamp": "2026-03-15T16:50:15.224Z"
+        },
+        {
+          "role": "bot",
+          "content": "According to the 2011 census, Hyderabad has a city limit population of 6.9 million residents and a metropolitan region population of 9.7 million.",
+          "timestamp": "2026-03-15T16:50:15.224Z",
+          "confidence": 0.43419994961318586,
+          "confidence_reason": "avg similarity 0.43; no major penalties; below threshold 0.60.",
+          "response_time_sec": 19.846,
+          "sources": [
+            {
+              "source_id": "2a12e18d-b19c-4a5e-bf75-215e7ae4a2ed",
+              "name": "https://en.wikipedia.org/wiki/Hyderabad",
+              "url": "https://en.wikipedia.org/wiki/Hyderabad",
+              "confidence_min": 0.44530400126590264,
+              "confidence_max": 0.590206813779614,
+              "match_count": 5
+            }
+          ]
+        },
+        {
+          "role": "user",
+          "content": "What is the population of Mumbai",
+          "timestamp": "2026-03-15T16:50:28.903Z"
+        },
+        {
+          "role": "bot",
+          "content": "Mumbai has an estimated population of 12.5 million (1.25 crore).",
+          "timestamp": "2026-03-15T16:50:28.903Z",
+          "confidence": 0.4538770973424799,
+          "confidence_reason": "avg similarity 0.45; no major penalties; below threshold 0.60.",
+          "response_time_sec": 12.636,
+          "sources": [
+            {
+              "source_id": "7c0ec81e-e6fe-4579-a563-c35c39fc5a5a",
+              "name": "https://en.wikipedia.org/wiki/Mumbai",
+              "url": "https://en.wikipedia.org/wiki/Mumbai",
+              "confidence_min": 0.473676707761429,
+              "confidence_max": 0.5661807239856744,
+              "match_count": 5
+            }
+          ]
+        }
+      ],
+      "message_count": 4,
+      "was_escalated": true,
+      "escalation_reason": "confidence_low",
+      "feedback_rating": null,
+      "feedback_is_correct": null,
+      "feedback_comment": null,
+      "created_at": "2026-03-15T16:50:15.224Z",
+      "updated_at": "2026-03-15T16:50:28.903Z"
+    },
+    {
+      "id": "65a08ef9-803b-4ac4-be97-5ba554a1058d",
+      "organization_id": "default",
+      "session_id": "session-1773593479258",
+      "user_email": null,
+      "user_name": null,
+      "messages": [
+        {
+          "role": "user",
+          "content": "Where is Hyderabad",
+          "timestamp": "2026-03-15T16:51:28.806Z"
+        },
+        {
+          "role": "bot",
+          "content": "_Note: This answer does not use vector store context._\n\nHyderabad is a major city in the Indian state of Telangana, located on the banks of the Godavari River.",
+          "timestamp": "2026-03-15T16:51:28.806Z",
+          "confidence": 0.5,
+          "confidence_reason": "No relevant vector-store evidence; baseline confidence applied.",
+          "response_time_sec": 3.226,
+          "sources": []
+        },
+        {
+          "role": "user",
+          "content": "Where is Mumbai",
+          "timestamp": "2026-03-15T16:51:43.215Z"
+        },
+        {
+          "role": "bot",
+          "content": "_Note: This answer does not use vector store context._\n\nMumbai is the largest city in India, located on the western coast of the country along the Arabian Sea.",
+          "timestamp": "2026-03-15T16:51:43.215Z",
+          "confidence": 0.5,
+          "confidence_reason": "No relevant vector-store evidence; baseline confidence applied.",
+          "response_time_sec": 2.828,
+          "sources": []
+        }
+      ],
+      "message_count": 4,
+      "was_escalated": false,
+      "feedback_rating": null,
+      "feedback_is_correct": null,
+      "feedback_comment": null,
+      "created_at": "2026-03-15T16:51:28.806Z",
+      "updated_at": "2026-03-15T16:51:43.215Z"
+    },
+    {
+      "id": "70514b92-824e-4f3f-a44c-2ccb931c0f88",
+      "organization_id": "default",
+      "session_id": "sess-token-check2",
+      "user_email": null,
+      "user_name": null,
+      "messages": [
+        {
+          "role": "user",
+          "content": "Where is Mumbai",
+          "timestamp": "2026-03-15T16:56:56.906Z"
+        },
+        {
+          "role": "bot",
+          "content": "Mumbai",
+          "timestamp": "2026-03-15T16:56:56.906Z",
+          "confidence": 0.32881826859163715,
+          "confidence_reason": "avg similarity 0.53; short-answer penalty 0.20; below threshold 0.60.",
+          "response_time_sec": 5.253,
+          "token_usage": {
+            "prompt_tokens": 312,
+            "completion_tokens": 3,
+            "total_tokens": 315
+          },
+          "sources": [
+            {
+              "source_id": "7c0ec81e-e6fe-4579-a563-c35c39fc5a5a",
+              "name": "https://en.wikipedia.org/wiki/Mumbai",
+              "url": "https://en.wikipedia.org/wiki/Mumbai",
+              "confidence_min": 0.5288182685916372,
+              "confidence_max": 0.5288182685916372,
+              "match_count": 1
+            }
+          ]
+        }
+      ],
+      "message_count": 2,
+      "was_escalated": true,
+      "escalation_reason": "confidence_low",
+      "feedback_rating": null,
+      "feedback_is_correct": null,
+      "feedback_comment": null,
+      "created_at": "2026-03-15T16:56:56.906Z",
+      "updated_at": "2026-03-15T16:56:56.906Z"
+    },
+    {
+      "id": "97e4cfcd-54f4-4268-be4d-80141787fdd7",
+      "organization_id": "default",
+      "session_id": "sess-stream-token",
+      "user_email": null,
+      "user_name": null,
+      "messages": [
+        {
+          "role": "user",
+          "content": "Where is Hyderabad",
+          "timestamp": "2026-03-15T16:57:05.938Z"
+        },
+        {
+          "role": "bot",
+          "content": "_Note: This answer does not use vector store context._\n\nHyderabad is the capital city of the Indian state of Telangana, located in South India.",
+          "timestamp": "2026-03-15T16:57:05.938Z",
+          "confidence": 0.5,
+          "confidence_reason": "No relevant vector-store evidence; baseline confidence applied.",
+          "response_time_sec": 3.187,
+          "token_usage": {
+            "prompt_tokens": 37,
+            "completion_tokens": 21,
+            "total_tokens": 58
+          },
+          "sources": []
+        }
+      ],
+      "message_count": 2,
+      "was_escalated": false,
+      "feedback_rating": null,
+      "feedback_is_correct": null,
+      "feedback_comment": null,
+      "created_at": "2026-03-15T16:57:05.938Z",
+      "updated_at": "2026-03-15T16:57:05.938Z"
+    },
+    {
+      "id": "1b71a9a7-749a-423a-99de-1a392cd3ca2d",
+      "organization_id": "default",
+      "session_id": "sess-feedback-check",
+      "user_email": null,
+      "user_name": null,
+      "messages": [
+        {
+          "role": "user",
+          "content": "Where is Mumbai",
+          "timestamp": "2026-03-15T16:57:59.784Z"
+        },
+        {
+          "role": "bot",
+          "content": "Mumbai",
+          "timestamp": "2026-03-15T16:57:59.784Z",
+          "confidence": 0.32881826859163715,
+          "confidence_reason": "avg similarity 0.53; short-answer penalty 0.20; below threshold 0.60.",
+          "response_time_sec": 8.142,
+          "token_usage": {
+            "prompt_tokens": 312,
+            "completion_tokens": 3,
+            "total_tokens": 315
+          },
+          "sources": [
+            {
+              "source_id": "7c0ec81e-e6fe-4579-a563-c35c39fc5a5a",
+              "name": "https://en.wikipedia.org/wiki/Mumbai",
+              "url": "https://en.wikipedia.org/wiki/Mumbai",
+              "confidence_min": 0.5288182685916372,
+              "confidence_max": 0.5288182685916372,
+              "match_count": 1
+            }
+          ]
+        }
+      ],
+      "message_count": 2,
+      "was_escalated": true,
+      "escalation_reason": "confidence_low",
+      "feedback_rating": 5,
+      "feedback_is_correct": true,
+      "feedback_comment": "UI thumbs up test",
+      "created_at": "2026-03-15T16:57:59.784Z",
+      "updated_at": "2026-03-15T16:57:59.790Z"
+    },
+    {
+      "id": "07df4d1e-6546-489f-bd1d-3acb2b721457",
+      "organization_id": "default",
+      "session_id": "session-1773593685474",
+      "user_email": null,
+      "user_name": null,
+      "messages": [
+        {
+          "role": "user",
+          "content": "Where is Hyderabad",
+          "timestamp": "2026-03-15T16:58:53.921Z"
+        },
+        {
+          "role": "bot",
+          "content": "_Note: This answer does not use vector store context._\n\nHyderabad is the capital city of the Indian state of Telangana, located in South India.",
+          "timestamp": "2026-03-15T16:58:53.921Z",
+          "confidence": 0.5,
+          "confidence_reason": "No relevant vector-store evidence; baseline confidence applied.",
+          "response_time_sec": 3.485,
+          "token_usage": {
+            "prompt_tokens": 37,
+            "completion_tokens": 21,
+            "total_tokens": 58
+          },
+          "sources": []
+        }
+      ],
+      "message_count": 2,
+      "was_escalated": false,
+      "feedback_rating": 5,
+      "feedback_is_correct": true,
+      "feedback_comment": "Marked as helpful by user",
+      "created_at": "2026-03-15T16:58:53.921Z",
+      "updated_at": "2026-03-15T17:01:08.945Z"
+    },
+    {
+      "id": "c9912eb4-8ab6-4160-8314-aace597bb88b",
+      "organization_id": "default",
+      "session_id": "sess-hyd-vec-check",
+      "user_email": null,
+      "user_name": null,
+      "messages": [
+        {
+          "role": "user",
+          "content": "Where is Hyderabad",
+          "timestamp": "2026-03-15T17:03:16.828Z"
+        },
+        {
+          "role": "bot",
+          "content": "Hyderabad is a city in India that emerged as the foremost centre of culture after the fall of Delhi in 1857 and serves as a hub for the fourth industrial revolution in life sciences and health sectors.",
+          "timestamp": "2026-03-15T17:03:16.828Z",
+          "confidence": 0.35485053925723864,
+          "confidence_reason": "avg similarity 0.35; no major penalties; below threshold 0.60.",
+          "response_time_sec": 15.083,
+          "token_usage": {
+            "prompt_tokens": 829,
+            "completion_tokens": 44,
+            "total_tokens": 873
+          },
+          "sources": [
+            {
+              "source_id": "2a12e18d-b19c-4a5e-bf75-215e7ae4a2ed",
+              "name": "https://en.wikipedia.org/wiki/Hyderabad",
+              "url": "https://en.wikipedia.org/wiki/Hyderabad",
+              "confidence_min": 0.37167838168419093,
+              "confidence_max": 0.4014383956766446,
+              "match_count": 5
+            }
+          ]
+        }
+      ],
+      "message_count": 2,
+      "was_escalated": true,
+      "escalation_reason": "confidence_low",
+      "feedback_rating": null,
+      "feedback_is_correct": null,
+      "feedback_comment": null,
+      "created_at": "2026-03-15T17:03:16.828Z",
+      "updated_at": "2026-03-15T17:03:16.828Z"
+    },
+    {
+      "id": "0220cc51-91a2-4725-a4ea-b8326ac5b855",
+      "organization_id": "default",
+      "session_id": "sess-think-on",
+      "user_email": null,
+      "user_name": null,
+      "messages": [
+        {
+          "role": "user",
+          "content": "Where is Hyderabad",
+          "timestamp": "2026-03-15T17:04:40.541Z"
+        },
+        {
+          "role": "bot",
+          "content": "",
+          "timestamp": "2026-03-15T17:04:40.541Z",
+          "confidence": 0.15485053925723863,
+          "confidence_reason": "avg similarity 0.35; short-answer penalty 0.20",
+          "response_time_sec": 83.315,
+          "token_usage": {
+            "prompt_tokens": 827,
+            "completion_tokens": 800,
+            "total_tokens": 1627
+          },
+          "sources": [
+            {
+              "source_id": "2a12e18d-b19c-4a5e-bf75-215e7ae4a2ed",
+              "name": "https://en.wikipedia.org/wiki/Hyderabad",
+              "url": "https://en.wikipedia.org/wiki/Hyderabad",
+              "confidence_min": 0.37167838168419093,
+              "confidence_max": 0.4014383956766446,
+              "match_count": 5
+            }
+          ]
+        }
+      ],
+      "message_count": 2,
+      "was_escalated": false,
+      "feedback_rating": null,
+      "feedback_is_correct": null,
+      "feedback_comment": null,
+      "created_at": "2026-03-15T17:04:40.541Z",
+      "updated_at": "2026-03-15T17:04:40.541Z"
+    },
+    {
+      "id": "3d7efd44-3d83-40f7-a634-488113c09ce9",
+      "organization_id": "default",
+      "session_id": "sess-think-off",
+      "user_email": null,
+      "user_name": null,
+      "messages": [
+        {
+          "role": "user",
+          "content": "Where is Hyderabad",
+          "timestamp": "2026-03-15T17:04:51.133Z"
+        },
+        {
+          "role": "bot",
+          "content": "Hyderabad is a city in India that emerged as the foremost centre of culture after the fall of Delhi in 1857, with a population exceeding 6.8 million by 2011.",
+          "timestamp": "2026-03-15T17:04:51.133Z",
+          "confidence": 0.35485053925723864,
+          "confidence_reason": "avg similarity 0.35; no major penalties",
+          "response_time_sec": 10.574,
+          "token_usage": {
+            "prompt_tokens": 829,
+            "completion_tokens": 44,
+            "total_tokens": 873
+          },
+          "sources": [
+            {
+              "source_id": "2a12e18d-b19c-4a5e-bf75-215e7ae4a2ed",
+              "name": "https://en.wikipedia.org/wiki/Hyderabad",
+              "url": "https://en.wikipedia.org/wiki/Hyderabad",
+              "confidence_min": 0.37167838168419093,
+              "confidence_max": 0.4014383956766446,
+              "match_count": 5
+            }
+          ]
+        }
+      ],
+      "message_count": 2,
+      "was_escalated": false,
+      "feedback_rating": null,
+      "feedback_is_correct": null,
+      "feedback_comment": null,
+      "created_at": "2026-03-15T17:04:51.133Z",
+      "updated_at": "2026-03-15T17:04:51.133Z"
+    },
+    {
+      "id": "b3fc6754-2256-4794-9265-721e046810d4",
+      "organization_id": "default",
+      "session_id": "session-1773612405890",
+      "user_email": null,
+      "user_name": null,
+      "messages": [
+        {
+          "role": "user",
+          "content": "Where is Hyderabad",
+          "timestamp": "2026-03-15T22:08:24.375Z"
+        },
+        {
+          "role": "bot",
+          "content": "",
+          "timestamp": "2026-03-15T22:08:24.375Z",
+          "confidence": 0.15485053925723863,
+          "confidence_reason": "avg similarity 0.35; short-answer penalty 0.20",
+          "response_time_sec": 84.899,
+          "token_usage": {
+            "prompt_tokens": 827,
+            "completion_tokens": 800,
+            "total_tokens": 1627
+          },
+          "sources": [
+            {
+              "source_id": "2a12e18d-b19c-4a5e-bf75-215e7ae4a2ed",
+              "name": "https://en.wikipedia.org/wiki/Hyderabad",
+              "url": "https://en.wikipedia.org/wiki/Hyderabad",
+              "confidence_min": 0.37167838168419093,
+              "confidence_max": 0.4014383956766446,
+              "match_count": 5
+            }
+          ]
+        },
+        {
+          "role": "user",
+          "content": "What are popular in Hyderabad",
+          "timestamp": "2026-03-15T22:09:25.894Z"
+        },
+        {
+          "role": "bot",
+          "content": "Based on the context provided, popular things in Hyderabad include:\n\n*   **Culture:** Performing arts (from the north/west), Deccani film industry, and parallel cinema.\n*   **Economy:** The largest contributor to Telangana's GDP, a major credit centre for banking, and a hub for the fourth industrial revolution.\n*   **Art & Handicrafts:** Golconda painting style (Deccan painting).\n*   **Tourism:** Ramoji Film City (world's largest film studio) and various international film festivals.",
+          "timestamp": "2026-03-15T22:09:25.894Z",
+          "confidence": 0.423653288227797,
+          "confidence_reason": "avg similarity 0.42; no major penalties",
+          "response_time_sec": 18.324,
+          "token_usage": {
+            "prompt_tokens": 617,
+            "completion_tokens": 116,
+            "total_tokens": 733
+          },
+          "sources": [
+            {
+              "source_id": "2a12e18d-b19c-4a5e-bf75-215e7ae4a2ed",
+              "name": "https://en.wikipedia.org/wiki/Hyderabad",
+              "url": "https://en.wikipedia.org/wiki/Hyderabad",
+              "confidence_min": 0.4344881480373033,
+              "confidence_max": 0.5041365219212024,
+              "match_count": 5
+            }
+          ]
+        },
+        {
+          "role": "user",
+          "content": "What are popular in Mumbai",
+          "timestamp": "2026-03-15T22:11:12.769Z"
+        },
+        {
+          "role": "bot",
+          "content": "",
+          "timestamp": "2026-03-15T22:11:12.769Z",
+          "confidence": 0.24562856389452964,
+          "confidence_reason": "avg similarity 0.45; short-answer penalty 0.20",
+          "response_time_sec": 79.423,
+          "token_usage": {
+            "prompt_tokens": 629,
+            "completion_tokens": 800,
+            "total_tokens": 1429
+          },
+          "sources": [
+            {
+              "source_id": "7c0ec81e-e6fe-4579-a563-c35c39fc5a5a",
+              "name": "https://en.wikipedia.org/wiki/Mumbai",
+              "url": "https://en.wikipedia.org/wiki/Mumbai",
+              "confidence_min": 0.4829908015835467,
+              "confidence_max": 0.5394575417734636,
+              "match_count": 5
+            }
+          ]
+        }
+      ],
+      "message_count": 6,
+      "was_escalated": false,
+      "feedback_rating": null,
+      "feedback_is_correct": null,
+      "feedback_comment": null,
+      "created_at": "2026-03-15T22:08:24.375Z",
+      "updated_at": "2026-03-15T22:11:12.769Z"
+    },
+    {
+      "id": "6e21fc69-525a-43c4-a621-78f4f9e3ec74",
+      "organization_id": "default",
+      "session_id": "sess-think-on-answer",
+      "user_email": null,
+      "user_name": null,
+      "messages": [
+        {
+          "role": "user",
+          "content": "Give answer in markdown with bullets about Hyderabad location",
+          "timestamp": "2026-03-15T22:15:16.766Z"
+        },
+        {
+          "role": "bot",
+          "content": "",
+          "timestamp": "2026-03-15T22:15:16.766Z",
+          "confidence": 0.3391782320132353,
+          "confidence_reason": "avg similarity 0.54; short-answer penalty 0.20",
+          "response_time_sec": 88.071,
+          "token_usage": {
+            "prompt_tokens": 669,
+            "completion_tokens": 800,
+            "total_tokens": 1469
+          },
+          "sources": [
+            {
+              "source_id": "7c0ec81e-e6fe-4579-a563-c35c39fc5a5a",
+              "name": "https://en.wikipedia.org/wiki/Mumbai",
+              "url": "https://en.wikipedia.org/wiki/Mumbai",
+              "confidence_min": 0.5260877407149526,
+              "confidence_max": 0.5950868955659466,
+              "match_count": 3
+            },
+            {
+              "source_id": "2a12e18d-b19c-4a5e-bf75-215e7ae4a2ed",
+              "name": "https://en.wikipedia.org/wiki/Hyderabad",
+              "url": "https://en.wikipedia.org/wiki/Hyderabad",
+              "confidence_min": 0.5010449071083658,
+              "confidence_max": 0.5180714212796831,
+              "match_count": 2
+            }
+          ]
+        }
+      ],
+      "message_count": 2,
+      "was_escalated": false,
+      "feedback_rating": null,
+      "feedback_is_correct": null,
+      "feedback_comment": null,
+      "created_at": "2026-03-15T22:15:16.766Z",
+      "updated_at": "2026-03-15T22:15:16.766Z"
+    },
+    {
+      "id": "359c4987-35f8-4f87-848e-965a97e10c01",
+      "organization_id": "default",
+      "session_id": "session-1773612806977",
+      "user_email": null,
+      "user_name": null,
+      "messages": [
+        {
+          "role": "user",
+          "content": "What are popular in Hyderabad",
+          "timestamp": "2026-03-15T22:16:12.957Z"
+        },
+        {
+          "role": "bot",
+          "content": "Based on the context provided, popular things in Hyderabad include:\n\n*   **Culture:** Performing arts (from the north and west) and Deccani film industry.\n*   **Economy:** A large metropolitan GDP, significant tax revenue, and a major credit center for the nation.\n*   **Art & Handicrafts:** Golconda and Hyderabad painting styles (branches of Deccan painting).\n*   **Film:** International film festivals and the world's largest film studio (Ramoji Film City).",
+          "timestamp": "2026-03-15T22:16:12.957Z",
+          "confidence": 0.423653288227797,
+          "confidence_reason": "avg similarity 0.42; no major penalties",
+          "response_time_sec": 17.524,
+          "token_usage": {
+            "prompt_tokens": 617,
+            "completion_tokens": 108,
+            "total_tokens": 725
+          },
+          "sources": [
+            {
+              "source_id": "2a12e18d-b19c-4a5e-bf75-215e7ae4a2ed",
+              "name": "https://en.wikipedia.org/wiki/Hyderabad",
+              "url": "https://en.wikipedia.org/wiki/Hyderabad",
+              "confidence_min": 0.4344881480373033,
+              "confidence_max": 0.5041365219212024,
+              "match_count": 5
+            }
+          ]
+        },
+        {
+          "role": "user",
+          "content": "Where is Mumbai",
+          "timestamp": "2026-03-15T22:18:47.120Z"
+        },
+        {
+          "role": "bot",
+          "content": "",
+          "timestamp": "2026-03-15T22:18:47.120Z",
+          "confidence": 0.17820806058513183,
+          "confidence_reason": "avg similarity 0.38; short-answer penalty 0.20",
+          "response_time_sec": 85.215,
+          "token_usage": {
+            "prompt_tokens": 731,
+            "completion_tokens": 800,
+            "total_tokens": 1531
+          },
+          "sources": [
+            {
+              "source_id": "7c0ec81e-e6fe-4579-a563-c35c39fc5a5a",
+              "name": "https://en.wikipedia.org/wiki/Mumbai",
+              "url": "https://en.wikipedia.org/wiki/Mumbai",
+              "confidence_min": 0.40615689251314374,
+              "confidence_max": 0.5288182685916372,
+              "match_count": 5
+            }
+          ]
+        }
+      ],
+      "message_count": 4,
+      "was_escalated": false,
+      "feedback_rating": null,
+      "feedback_is_correct": null,
+      "feedback_comment": null,
+      "created_at": "2026-03-15T22:16:12.957Z",
+      "updated_at": "2026-03-15T22:18:47.120Z"
+    },
+    {
+      "id": "e6f648fd-82c9-4739-8796-b2883135ffa6",
+      "organization_id": "default",
+      "session_id": "sess-think-on-value",
+      "user_email": null,
+      "user_name": null,
+      "messages": [
+        {
+          "role": "user",
+          "content": "Where is Hyderabad",
+          "timestamp": "2026-03-15T22:21:16.369Z"
+        },
+        {
+          "role": "bot",
+          "content": "",
+          "timestamp": "2026-03-15T22:21:16.369Z",
+          "confidence": 0.15485053925723863,
+          "confidence_reason": "avg similarity 0.35; short-answer penalty 0.20",
+          "response_time_sec": 90.676,
+          "token_usage": {
+            "prompt_tokens": 827,
+            "completion_tokens": 800,
+            "total_tokens": 1627
+          },
+          "sources": [
+            {
+              "source_id": "2a12e18d-b19c-4a5e-bf75-215e7ae4a2ed",
+              "name": "https://en.wikipedia.org/wiki/Hyderabad",
+              "url": "https://en.wikipedia.org/wiki/Hyderabad",
+              "confidence_min": 0.37167838168419093,
+              "confidence_max": 0.4014383956766446,
+              "match_count": 5
+            }
+          ]
+        }
+      ],
+      "message_count": 2,
+      "was_escalated": false,
+      "feedback_rating": null,
+      "feedback_is_correct": null,
+      "feedback_comment": null,
+      "created_at": "2026-03-15T22:21:16.369Z",
+      "updated_at": "2026-03-15T22:21:16.369Z"
+    },
+    {
+      "id": "539927f4-6035-4a6f-9db6-5fa11bd8fbf8",
+      "organization_id": "default",
+      "session_id": "sess-node-stream-check",
+      "user_email": null,
+      "user_name": null,
+      "messages": [
+        {
+          "role": "user",
+          "content": "Where is Hyderabad",
+          "timestamp": "2026-03-15T22:24:12.204Z"
+        },
+        {
+          "role": "bot",
+          "content": "Hyderabad is a city in India that emerged as the foremost centre of culture after the fall of Delhi in 1857 and serves as a hub for technology in life sciences and health sectors.",
+          "timestamp": "2026-03-15T22:24:12.204Z",
+          "confidence": 0.35485053925723864,
+          "confidence_reason": "avg similarity 0.35; no major penalties",
+          "response_time_sec": 91.514,
+          "token_usage": {
+            "prompt_tokens": 829,
+            "completion_tokens": 41,
+            "total_tokens": 870
+          },
+          "sources": [
+            {
+              "source_id": "2a12e18d-b19c-4a5e-bf75-215e7ae4a2ed",
+              "name": "https://en.wikipedia.org/wiki/Hyderabad",
+              "url": "https://en.wikipedia.org/wiki/Hyderabad",
+              "confidence_min": 0.37167838168419093,
+              "confidence_max": 0.4014383956766446,
+              "match_count": 5
+            }
+          ]
+        }
+      ],
+      "message_count": 2,
+      "was_escalated": false,
+      "feedback_rating": null,
+      "feedback_is_correct": null,
+      "feedback_comment": null,
+      "created_at": "2026-03-15T22:24:12.204Z",
+      "updated_at": "2026-03-15T22:24:12.204Z"
+    },
+    {
+      "id": "6e348817-adeb-452c-b4a3-ddd655c44e94",
+      "organization_id": "default",
+      "session_id": "session-1773613526466",
+      "user_email": null,
+      "user_name": null,
+      "messages": [
+        {
+          "role": "user",
+          "content": "What are popular in Hyderabad",
+          "timestamp": "2026-03-15T22:27:12.534Z"
+        },
+        {
+          "role": "bot",
+          "content": "Based on the provided context, popular things in Hyderabad include:\n\n*   **Culture:** It emerged as India's foremost cultural center after the fall of Delhi in 1857.\n*   **Film Industry:** It is home to the \"Deccani\" film industry (Dollywood), famous for local dialect films, and hosts major festivals like the International Children's Film Festival.\n*   **Art & Handicrafts:** The region is renowned for Deccan painting styles, specifically Golconda and Hyderabad painting.\n*   **Economy:** It is a top contributor to Telangana's GDP and has significant banking and employment sectors (state and central government).",
+          "timestamp": "2026-03-15T22:27:12.534Z",
+          "confidence": 0.423653288227797,
+          "confidence_reason": "avg similarity 0.42; no major penalties",
+          "response_time_sec": 96.204,
+          "token_usage": {
+            "prompt_tokens": 617,
+            "completion_tokens": 140,
+            "total_tokens": 757
+          },
+          "sources": [
+            {
+              "source_id": "2a12e18d-b19c-4a5e-bf75-215e7ae4a2ed",
+              "name": "https://en.wikipedia.org/wiki/Hyderabad",
+              "url": "https://en.wikipedia.org/wiki/Hyderabad",
+              "confidence_min": 0.4344881480373033,
+              "confidence_max": 0.5041365219212024,
+              "match_count": 5
+            }
+          ]
+        }
+      ],
+      "message_count": 2,
+      "was_escalated": false,
+      "feedback_rating": null,
+      "feedback_is_correct": null,
+      "feedback_comment": null,
+      "created_at": "2026-03-15T22:27:12.534Z",
+      "updated_at": "2026-03-15T22:27:12.534Z"
     }
   ],
   "sources": [
@@ -294,5 +1788,5 @@
       "updated_at": "2026-03-12T16:49:30.648Z"
     }
   ],
-  "updated_at": "2026-03-13T17:03:45.652Z"
+  "updated_at": "2026-03-15T22:30:39.840Z"
 }

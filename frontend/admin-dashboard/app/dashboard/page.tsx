@@ -12,6 +12,12 @@ interface Metrics {
   escalation_rate: number;
   avg_satisfaction: number;
   unique_users: number;
+  token_usage?: {
+    total_prompt_tokens: number;
+    total_completion_tokens: number;
+    total_tokens: number;
+    avg_tokens_per_response: number;
+  };
 }
 
 export default function DashboardPage() {
@@ -81,6 +87,12 @@ export default function DashboardPage() {
     escalation_rate: 0,
     avg_satisfaction: 0,
     unique_users: 0,
+    token_usage: {
+      total_prompt_tokens: 0,
+      total_completion_tokens: 0,
+      total_tokens: 0,
+      avg_tokens_per_response: 0,
+    },
   };
 
   return (
@@ -97,7 +109,7 @@ export default function DashboardPage() {
         </div>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-7 gap-6 mb-8">
         <MetricCard label="Total Conversations" value={m.total_conversations} icon="💬" />
         <MetricCard label="Avg Response Time" value={`${m.avg_response_time_sec.toFixed(2)}s`} icon="⚡" />
         <MetricCard
@@ -111,6 +123,12 @@ export default function DashboardPage() {
           icon="⭐"
         />
         <MetricCard label="Unique Users" value={m.unique_users} icon="👥" />
+        <MetricCard label="Total Tokens" value={m.token_usage?.total_tokens || 0} icon="🧮" />
+        <MetricCard
+          label="Avg Tokens / Response"
+          value={m.token_usage?.avg_tokens_per_response?.toFixed(1) || '0.0'}
+          icon="🔤"
+        />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

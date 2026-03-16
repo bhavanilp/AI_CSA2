@@ -11,7 +11,7 @@ const router = Router();
 router.post(
   '/message',
   asyncHandler(async (req: Request, res: Response) => {
-    const { conversation_id, message, session_id } = req.body;
+    const { conversation_id, message, session_id, include_thinking } = req.body;
     const organizationId = req.organizationId || 'default';
 
     if (!message) {
@@ -24,6 +24,7 @@ router.post(
       user_id: session_id || uuidv4(),
       message,
       organization_id: organizationId,
+      enable_thinking: include_thinking === true,
     };
 
     const response = await processChat(chatRequest);
@@ -33,7 +34,7 @@ router.post(
 
 // POST /api/chat/message/stream  — Server-Sent Events streaming endpoint
 router.post('/message/stream', async (req: Request, res: Response) => {
-  const { conversation_id, message, session_id } = req.body;
+  const { conversation_id, message, session_id, include_thinking } = req.body;
   const organizationId = req.organizationId || 'default';
 
   if (!message) {
@@ -57,6 +58,7 @@ router.post('/message/stream', async (req: Request, res: Response) => {
     user_id: session_id || uuidv4(),
     message,
     organization_id: organizationId,
+    enable_thinking: include_thinking === true,
   };
 
   try {

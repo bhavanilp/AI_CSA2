@@ -1,6 +1,12 @@
 import { v4 as uuidv4 } from 'uuid';
 import { query } from '../config/database';
-import { generateEmbedding, generateAnswer, generateAnswerStream, detectKeywords } from './llmService';
+import {
+  generateEmbedding,
+  generateAnswer,
+  generateAnswerStream,
+  detectKeywords,
+  TokenUsage,
+} from './llmService';
 import { queryVectors } from '../config/vectorDb';
 import { config } from '../config/index';
 import logger from '../utils/logger';
@@ -12,6 +18,7 @@ export interface Message {
   confidence?: number;
   confidence_reason?: string;
   response_time_sec?: number;
+  token_usage?: TokenUsage;
   sources?: Array<{
     source_id: string;
     name: string;
@@ -25,6 +32,7 @@ export interface ChatRequest {
   user_id: string;
   message: string;
   organization_id: string;
+  enable_thinking?: boolean;
 }
 
 export interface ChatResponse {
@@ -35,6 +43,7 @@ export interface ChatResponse {
   confidence: number;
   confidence_reason: string;
   response_time_sec: number;
+  token_usage?: TokenUsage;
   sources: Array<{
     source_id: string;
     name: string;
@@ -168,10 +177,129 @@ const computeAnswerConfidence = (params: {
   };
 };
 
+const buildRetrievalContext = async (params: {
+  message: string;
+  organizationId: string;
+}): Promise<{
+  retrievedChunks: any[];
+  relevantChunks: any[];
+  shouldUseVectorStore: boolean;
+  contextChunks: string;
+}> => {
+  const { message, organizationId } = params;
+  const minVectorRelevanceScore = config.rag.vector_relevance_threshold;
+
+  const queryEmbedding = await generateEmbedding(message);
+  const retrievalCandidateCount = Math.max(config.rag.retrieval_top_k, 50);
+  const retrievedChunks = await queryVectors(queryEmbedding, retrievalCandidateCount, {
+    organization_id: organizationId,
+  });
+
+  const queryTerms = Array.from(
+    new Set(
+      (message.toLowerCase().match(/[a-z0-9]{4,}/g) || []).filter(
+        (term) => !['what', 'which', 'when', 'where', 'with', 'from', 'that', 'this', 'about'].includes(term),
+      ),
+    ),
+  );
+  const isPopulationQuery = /\bpopulation\b/i.test(message);
+  const messageTerms = (message.toLowerCase().match(/[a-z0-9-]+/g) || []).filter(
+    (term) => !['what', 'which', 'when', 'where', 'who', 'why', 'how', 'is', 'are', 'was', 'were', 'of', 'the', 'a', 'an', 'in', 'on', 'at', 'to', 'for', 'about'].includes(term),
+  );
+  const entityHint = (
+    message.match(/\b(?:of|is|in|at)\s+([a-zA-Z][a-zA-Z0-9-]*)\b/i)?.[1]
+    || messageTerms[messageTerms.length - 1]
+    || ''
+  ).toLowerCase();
+
+  const rankedChunks = retrievedChunks
+    .map((chunk: any) => {
+      const rawScore = typeof chunk.score === 'number' ? chunk.score : 0;
+      const searchableText = `${chunk.metadata?.source_name || ''} ${chunk.metadata?.source_url || ''} ${
+        chunk.metadata?.chunk_text || ''
+      }`.toLowerCase();
+      const sourceIdentityText = `${chunk.metadata?.source_name || ''} ${chunk.metadata?.source_url || ''}`.toLowerCase();
+      const matchedTerms = queryTerms.filter((term) => searchableText.includes(term)).length;
+      const lexicalBonus = Math.min(0.12, matchedTerms * 0.03);
+      const factBonus =
+        isPopulationQuery && /\b(population|census|residents|metropolitan)\b/i.test(searchableText) ? 0.05 : 0;
+      const entityBonus = entityHint && sourceIdentityText.includes(entityHint) ? 0.2 : 0;
+      return {
+        chunk,
+        effectiveScore: rawScore + lexicalBonus + factBonus + entityBonus,
+      };
+    })
+    .sort((a: any, b: any) => b.effectiveScore - a.effectiveScore);
+
+  const relevantChunks = rankedChunks
+    .filter((entry: any) => entry.effectiveScore >= minVectorRelevanceScore)
+    .map((entry: any) => entry.chunk);
+  const shouldUseVectorStore = relevantChunks.length > 0;
+
+  const populationFactChunks =
+    isPopulationQuery && entityHint
+      ? rankedChunks
+          .map((entry: any) => entry.chunk)
+          .filter((chunk: any) => {
+            const text = (chunk.metadata?.chunk_text || '').toLowerCase();
+            const sourceIdentity = `${chunk.metadata?.source_name || ''} ${chunk.metadata?.source_url || ''}`.toLowerCase();
+            return (
+              sourceIdentity.includes(entityHint) &&
+              text.includes(entityHint) &&
+              /\b(population|census|residents|metropolitan)\b/i.test(text) &&
+              /\d/.test(text)
+            );
+          })
+          .sort(
+            (a: any, b: any) =>
+              (typeof a.metadata?.chunk_index === 'number' ? a.metadata.chunk_index : Number.MAX_SAFE_INTEGER) -
+              (typeof b.metadata?.chunk_index === 'number' ? b.metadata.chunk_index : Number.MAX_SAFE_INTEGER),
+          )
+      : [];
+
+  const maxChunkChars = 800;
+  const entityScopedRelevantChunks =
+    entityHint.length > 0
+      ? relevantChunks.filter((chunk: any) => {
+          const sourceIdentity = `${chunk.metadata?.source_name || ''} ${chunk.metadata?.source_url || ''}`.toLowerCase();
+          return sourceIdentity.includes(entityHint);
+        })
+      : [];
+  const baseContextChunks = entityScopedRelevantChunks.length > 0 ? entityScopedRelevantChunks : relevantChunks;
+  const chunkCandidatesForContext =
+    populationFactChunks.length > 0
+      ? [
+          ...populationFactChunks,
+          ...baseContextChunks.filter(
+            (chunk: any) => !populationFactChunks.some((factChunk: any) => factChunk.id === chunk.id),
+          ),
+        ]
+      : baseContextChunks;
+
+  const contextChunks = chunkCandidatesForContext
+    .slice(0, 3)
+    .map((chunk: any, idx: number) => {
+      const text = (chunk.metadata.chunk_text || '').slice(0, maxChunkChars);
+      return `[Source ${idx + 1}]: ${text}`;
+    })
+    .join('\n\n');
+
+  logger.info(
+    `Retrieved ${retrievedChunks.length} chunks for query, ${relevantChunks.length} passed relevance threshold ${minVectorRelevanceScore}`,
+  );
+  logger.info(`Context built with ${Math.min(relevantChunks.length, 3)} chunks (~${contextChunks.length} chars total)`);
+
+  return {
+    retrievedChunks,
+    relevantChunks,
+    shouldUseVectorStore,
+    contextChunks,
+  };
+};
+
 export const processChat = async (req: ChatRequest): Promise<ChatResponse> => {
   try {
     const requestStartMs = Date.now();
-    const MIN_VECTOR_RELEVANCE_SCORE = 0.60;
 
     // Get or create conversation
     let conversationId = req.conversation_id;
@@ -179,37 +307,11 @@ export const processChat = async (req: ChatRequest): Promise<ChatResponse> => {
       conversationId = uuidv4();
     }
 
-    // 1. Generate embedding for user query
-    const queryEmbedding = await generateEmbedding(req.message);
-
-    // 2. Retrieve relevant chunks from vector database
-    const retrievedChunks = await queryVectors(queryEmbedding, config.rag.retrieval_top_k, {
-      organization_id: req.organization_id,
+    // 1. Retrieve relevant chunks and build context
+    const { relevantChunks, shouldUseVectorStore, contextChunks } = await buildRetrievalContext({
+      message: req.message,
+      organizationId: req.organization_id,
     });
-
-    const relevantChunks = retrievedChunks.filter(
-      (chunk: any) => typeof chunk.score === 'number' && chunk.score >= MIN_VECTOR_RELEVANCE_SCORE
-    );
-    const shouldUseVectorStore = relevantChunks.length > 0;
-
-    logger.info(
-      `Retrieved ${retrievedChunks.length} chunks for query, ${relevantChunks.length} passed relevance threshold ${MIN_VECTOR_RELEVANCE_SCORE}`
-    );
-
-    // 3. Build context from retrieved chunks.
-    // Limit to 3 chunks, each capped at 400 chars to keep Ollama input tokens small.
-    const MAX_CHUNK_CHARS = 400;
-    const contextChunks = relevantChunks
-      .slice(0, 3)
-      .map((chunk: any, idx: number) => {
-        const text = (chunk.metadata.chunk_text || '').slice(0, MAX_CHUNK_CHARS);
-        return `[Source ${idx + 1}]: ${text}`;
-      })
-      .join('\n\n');
-
-    logger.info(
-      `Context built with ${Math.min(relevantChunks.length, 3)} chunks (~${contextChunks.length} chars total)`,
-    );
 
     // 4. Check for escalation keywords
     const escalationRulesResult = await query(
@@ -233,6 +335,7 @@ export const processChat = async (req: ChatRequest): Promise<ChatResponse> => {
     let answer = '';
     let confidence = 0;
     let confidenceReason = 'No confidence signal available.';
+    let tokenUsage: TokenUsage | undefined;
 
     let usedVectorStore = false;
     let vectorStoreNote: string | undefined;
@@ -242,8 +345,18 @@ export const processChat = async (req: ChatRequest): Promise<ChatResponse> => {
 
     try {
       if (!shouldEscalate && shouldUseVectorStore && contextChunks.length > 0) {
-        const result = await generateAnswer(systemPromptForContext, req.message, contextChunks);
+        const result = await generateAnswer(systemPromptForContext, req.message, contextChunks, {
+          enableThinking: req.enable_thinking === true,
+        });
         answer = result.answer;
+        tokenUsage = result.token_usage;
+        if (req.enable_thinking === true && !answer.trim()) {
+          const fallback = await generateAnswer(systemPromptForContext, req.message, contextChunks, {
+            enableThinking: false,
+          });
+          answer = fallback.answer;
+          tokenUsage = fallback.token_usage;
+        }
         usedVectorStore = true;
         const computed = computeAnswerConfidence({
           usedVectorStore: true,
@@ -260,8 +373,19 @@ export const processChat = async (req: ChatRequest): Promise<ChatResponse> => {
           confidenceReason = `${confidenceReason}; below threshold ${config.rag.confidence_threshold.toFixed(2)}.`;
         }
       } else if (!shouldEscalate) {
-        const fallbackResult = await generateAnswer(fallbackSystemPrompt, req.message, '');
-        answer = `_Note: This answer does not use vector store context._\n\n${fallbackResult.answer}`;
+        const fallbackResult = await generateAnswer(fallbackSystemPrompt, req.message, '', {
+          enableThinking: req.enable_thinking === true,
+        });
+        tokenUsage = fallbackResult.token_usage;
+        let fallbackAnswerText = fallbackResult.answer;
+        if (req.enable_thinking === true && !fallbackAnswerText.trim()) {
+          const plainFallback = await generateAnswer(fallbackSystemPrompt, req.message, '', {
+            enableThinking: false,
+          });
+          fallbackAnswerText = plainFallback.answer;
+          tokenUsage = plainFallback.token_usage;
+        }
+        answer = `_Note: This answer does not use vector store context._\n\n${fallbackAnswerText}`;
         usedVectorStore = false;
         vectorStoreNote = 'No relevant vector-store content matched the question.';
         const computed = computeAnswerConfidence({
@@ -312,6 +436,7 @@ export const processChat = async (req: ChatRequest): Promise<ChatResponse> => {
         confidence,
         confidence_reason: confidenceReason,
         response_time_sec: responseTimeSec,
+        token_usage: tokenUsage,
         sources,
       },
     ];
@@ -336,6 +461,7 @@ export const processChat = async (req: ChatRequest): Promise<ChatResponse> => {
       confidence,
       confidence_reason: confidenceReason,
       response_time_sec: responseTimeSec,
+      token_usage: tokenUsage,
       sources,
       should_escalate: shouldEscalate,
       escalation_reason: escalationReason,
@@ -375,32 +501,14 @@ type SSESender = (event: string, data: unknown) => void;
  */
 export const processChatStream = async (req: ChatRequest, send: SSESender): Promise<void> => {
   const requestStartMs = Date.now();
-  const MIN_VECTOR_RELEVANCE_SCORE = 0.60;
 
   const conversationId = req.conversation_id || uuidv4();
 
-  // 1. Generate embedding
-  const queryEmbedding = await generateEmbedding(req.message);
-
-  // 2. Retrieve relevant chunks
-  const retrievedChunks = await queryVectors(queryEmbedding, config.rag.retrieval_top_k, {
-    organization_id: req.organization_id,
+  // 1. Retrieve relevant chunks and build context
+  const { relevantChunks, shouldUseVectorStore, contextChunks } = await buildRetrievalContext({
+    message: req.message,
+    organizationId: req.organization_id,
   });
-
-  const relevantChunks = retrievedChunks.filter(
-    (chunk: any) => typeof chunk.score === 'number' && chunk.score >= MIN_VECTOR_RELEVANCE_SCORE
-  );
-  const shouldUseVectorStore = relevantChunks.length > 0;
-
-  // 3. Build context
-  const MAX_CHUNK_CHARS = 400;
-  const contextChunks = relevantChunks
-    .slice(0, 3)
-    .map((chunk: any, idx: number) => {
-      const text = (chunk.metadata.chunk_text || '').slice(0, MAX_CHUNK_CHARS);
-      return `[Source ${idx + 1}]: ${text}`;
-    })
-    .join('\n\n');
 
   // 4. Check escalation keywords
   const escalationRulesResult = await query(
@@ -437,6 +545,8 @@ export const processChatStream = async (req: ChatRequest, send: SSESender): Prom
 
   // 6. Stream tokens
   let fullAnswer = '';
+  let tokenUsage: TokenUsage | undefined;
+  let responseTokenCount = 0;
 
   if (shouldEscalate) {
     const msg = 'This query requires human support. A support agent will contact you shortly.';
@@ -454,12 +564,30 @@ export const processChatStream = async (req: ChatRequest, send: SSESender): Prom
     }
 
     try {
-      for await (const item of generateAnswerStream(systemPrompt, req.message, contextChunks)) {
+      for await (const item of generateAnswerStream(systemPrompt, req.message, contextChunks, {
+        enableThinking: req.enable_thinking === true,
+      })) {
         if (item.type === 'thinking') {
           send('think_token', { token: item.content });
+        } else if (item.type === 'usage') {
+          tokenUsage = item.token_usage;
         } else {
           fullAnswer += item.content;
+          if (item.content && item.content.length > 0) {
+            responseTokenCount += 1;
+          }
           send('token', { token: item.content });
+        }
+      }
+
+      if (responseTokenCount === 0) {
+        const fallback = await generateAnswer(systemPrompt, req.message, contextChunks, {
+          enableThinking: false,
+        });
+        if (fallback.answer && fallback.answer.length > 0) {
+          fullAnswer += fallback.answer;
+          tokenUsage = fallback.token_usage;
+          send('token', { token: fallback.answer });
         }
       }
     } catch (llmError: any) {
@@ -488,6 +616,8 @@ export const processChatStream = async (req: ChatRequest, send: SSESender): Prom
     confidence,
     confidence_reason: confidenceReason,
     response_time_sec: responseTimeSec,
+    token_usage: tokenUsage,
+    final_answer: fullAnswer,
   });
 
   // 7. Persist conversation
@@ -500,6 +630,7 @@ export const processChatStream = async (req: ChatRequest, send: SSESender): Prom
       confidence,
       confidence_reason: confidenceReason,
       response_time_sec: responseTimeSec,
+      token_usage: tokenUsage,
       sources,
     },
   ];

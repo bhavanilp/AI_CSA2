@@ -57,6 +57,7 @@ export const config = {
 
   rag: {
     retrieval_top_k: parseInt(process.env.RETRIEVAL_TOP_K || '5', 10),
+    vector_relevance_threshold: parseFloat(process.env.VECTOR_RELEVANCE_THRESHOLD || '0.55'),
     confidence_threshold: parseFloat(process.env.CONFIDENCE_THRESHOLD || '0.6'),
     max_context_tokens: parseInt(process.env.MAX_CONTEXT_TOKENS || '2000', 10),
     chunk_size: parseInt(process.env.CHUNK_SIZE || '1000', 10),
