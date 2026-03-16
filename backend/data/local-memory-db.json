@@ -6,7 +6,7 @@
       "email": "admin@aicsa.local",
       "password_hash": "$2a$10$03Z1CrjMPW0EdTdCKJH6uu8HhcY6ozjJ7PjXp3HvfgLYNgQYBGAi.",
       "role": "admin",
-      "last_login": "2026-03-15T22:30:39.840Z"
+      "last_login": "2026-03-16T12:35:44.013Z"
     }
   ],
   "conversations": [
@@ -1724,6 +1724,141 @@
       "feedback_comment": null,
       "created_at": "2026-03-15T22:27:12.534Z",
       "updated_at": "2026-03-15T22:27:12.534Z"
+    },
+    {
+      "id": "ad9b068f-652e-4a0f-87ff-448b64582e18",
+      "organization_id": "default",
+      "session_id": "session-1773663209467",
+      "user_email": null,
+      "user_name": null,
+      "messages": [
+        {
+          "role": "user",
+          "content": "Where is Pune",
+          "timestamp": "2026-03-16T12:14:27.137Z"
+        },
+        {
+          "role": "bot",
+          "content": "Pune is a city in the state of Maharashtra, Western India, located on the Deccan Plateau. It serves as the administrative headquarters of Pune district and division, with a total land area of 516.18 km².",
+          "timestamp": "2026-03-16T12:14:27.137Z",
+          "confidence": 0.45711190700821286,
+          "confidence_reason": "avg similarity 0.46; no major penalties",
+          "response_time_sec": 18.804,
+          "token_usage": {
+            "prompt_tokens": 573,
+            "completion_tokens": 52,
+            "total_tokens": 625
+          },
+          "sources": [
+            {
+              "source_id": "fabffdc6-2ae7-4dfe-86ba-5dd6ce71239d",
+              "name": "https://en.wikipedia.org/wiki/Pune",
+              "url": "https://en.wikipedia.org/wiki/Pune",
+              "confidence_min": 0.4794229627349067,
+              "confidence_max": 0.6533564224423856,
+              "match_count": 5
+            }
+          ]
+        },
+        {
+          "role": "user",
+          "content": "What is popular in Paris",
+          "timestamp": "2026-03-16T12:16:26.691Z"
+        },
+        {
+          "role": "bot",
+          "content": "Paris is not mentioned in the provided context.",
+          "timestamp": "2026-03-16T12:16:26.691Z",
+          "confidence": 0.19858324355562684,
+          "confidence_reason": "avg similarity 0.58; hedge phrase penalty 0.30; short-answer penalty 0.08",
+          "response_time_sec": 100.362,
+          "token_usage": {
+            "prompt_tokens": 575,
+            "completion_tokens": 10,
+            "total_tokens": 585
+          },
+          "sources": [
+            {
+              "source_id": "fabffdc6-2ae7-4dfe-86ba-5dd6ce71239d",
+              "name": "https://en.wikipedia.org/wiki/Pune",
+              "url": "https://en.wikipedia.org/wiki/Pune",
+              "confidence_min": 0.5835072652801876,
+              "confidence_max": 0.6959163359565076,
+              "match_count": 5
+            }
+          ]
+        }
+      ],
+      "message_count": 4,
+      "was_escalated": false,
+      "feedback_rating": null,
+      "feedback_is_correct": null,
+      "feedback_comment": null,
+      "created_at": "2026-03-16T12:14:27.137Z",
+      "updated_at": "2026-03-16T12:16:26.691Z"
+    },
+    {
+      "id": "c4fc704d-d92b-4721-8517-36c18b038e4b",
+      "organization_id": "default",
+      "session_id": "session-1773664543769",
+      "user_email": null,
+      "user_name": null,
+      "messages": [
+        {
+          "role": "user",
+          "content": "Where is paris",
+          "timestamp": "2026-03-16T12:36:19.266Z"
+        },
+        {
+          "role": "bot",
+          "content": "_Note: This answer does not use vector store context._\n\nParis is the capital city of France, located in northeastern Europe on the Seine River.",
+          "timestamp": "2026-03-16T12:36:19.266Z",
+          "confidence": 0.5,
+          "confidence_reason": "No relevant vector-store evidence; baseline confidence applied.",
+          "response_time_sec": 30.19,
+          "token_usage": {
+            "prompt_tokens": 37,
+            "completion_tokens": 18,
+            "total_tokens": 55
+          },
+          "sources": []
+        },
+        {
+          "role": "user",
+          "content": "What is popular in Pune",
+          "timestamp": "2026-03-16T12:38:10.603Z"
+        },
+        {
+          "role": "bot",
+          "content": "Popular things in Pune include:\n\n- **Sports**: Badminton (modern origin), tennis, cricket, athletics, basketball, football, kabaddi, paragliding, kho-kho, wrestling, rowing, and chess. Major venues include the Chhatrapati Shivaji Stadium, Deccan Gymkhana, and Pune Race Course.\n- **Culture & Arts**: Classical music festivals (e.g., Sawai Gandharva Sangeet Mahotsav), Dhol-Tasha pathaks during Ganesh Chaturthi, numerous theatres (e.g., Ganesh Kala Krida Rangamanch), and traditional festivals like Pandals.\n- **Food**: Maharashtrian cuisine dishes such as Poha, Vada Pav, Bhel, Pani Puri, and famous food streets like JM Road, FC Road, Tulshibaug, East Street, and Katraj Dairy Area.\n- **Education & Institutions**: Top colleges in engineering (e.g., College of Engineering Pune), law, medicine, management, and international education (e.g., United World Colleges).\n- **Transport**: Pune Metro (Purple and Aqua lines), bus services, auto rickshaws, and the busiest airport in India (Pune International Airport).\n- **Nature & Parks**: Kamala Nehru Park, Sambhaji Park, Shahu Udyan, Peshwe Park, Empress Gardens, Bund Garden, and protected hills like Hanuman Hill.",
+          "timestamp": "2026-03-16T12:38:10.603Z",
+          "confidence": 0.5628935545421966,
+          "confidence_reason": "avg similarity 0.56; no major penalties",
+          "response_time_sec": 101.673,
+          "token_usage": {
+            "prompt_tokens": 4092,
+            "completion_tokens": 304,
+            "total_tokens": 4396
+          },
+          "sources": [
+            {
+              "source_id": "fabffdc6-2ae7-4dfe-86ba-5dd6ce71239d",
+              "name": "https://en.wikipedia.org/wiki/Pune",
+              "url": "https://en.wikipedia.org/wiki/Pune",
+              "confidence_min": 0.5835072652801876,
+              "confidence_max": 0.6959163359565076,
+              "match_count": 5
+            }
+          ]
+        }
+      ],
+      "message_count": 4,
+      "was_escalated": false,
+      "feedback_rating": null,
+      "feedback_is_correct": null,
+      "feedback_comment": null,
+      "created_at": "2026-03-16T12:36:19.266Z",
+      "updated_at": "2026-03-16T12:38:10.604Z"
     }
   ],
   "sources": [
@@ -1765,6 +1900,32 @@
       "error_message": null,
       "created_at": "2026-03-13T16:40:36.992Z",
       "updated_at": "2026-03-13T16:40:36.992Z"
+    },
+    {
+      "id": "fabffdc6-2ae7-4dfe-86ba-5dd6ce71239d",
+      "organization_id": "default",
+      "name": "https://en.wikipedia.org/wiki/Pune",
+      "source_type": "website",
+      "config": "{\"url\":\"https://en.wikipedia.org/wiki/Pune\",\"chunk_count\":22}",
+      "status": "indexed",
+      "chunk_count": 0,
+      "last_indexed": "2026-03-16T12:13:55.344Z",
+      "error_message": null,
+      "created_at": "2026-03-16T12:13:55.344Z",
+      "updated_at": "2026-03-16T12:13:55.344Z"
+    },
+    {
+      "id": "vs-d56705ced29c",
+      "organization_id": "default",
+      "name": "en.wikipedia.org_wiki_Pune",
+      "source_type": "website",
+      "config": "{\"url\":\"https://en.wikipedia.org/wiki/Pune\"}",
+      "status": "indexed",
+      "chunk_count": 0,
+      "last_indexed": "2026-03-16T12:27:39.087Z",
+      "error_message": null,
+      "created_at": "2026-03-16T12:27:39.087Z",
+      "updated_at": "2026-03-16T12:27:39.087Z"
     }
   ],
   "escalationRules": [
@@ -1788,5 +1949,5 @@
       "updated_at": "2026-03-12T16:49:30.648Z"
     }
   ],
-  "updated_at": "2026-03-15T22:30:39.840Z"
+  "updated_at": "2026-03-16T12:38:10.604Z"
 }

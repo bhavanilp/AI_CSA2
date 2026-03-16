@@ -257,15 +257,30 @@ const buildRetrievalContext = async (params: {
           )
       : [];
 
-  const maxChunkChars = 800;
+  const maxChunkChars = 6000; // 1000-word chunks ≈ 5000 chars; cap at 6000 to pass full chunks to LLM
   const entityScopedRelevantChunks =
     entityHint.length > 0
       ? relevantChunks.filter((chunk: any) => {
           const sourceIdentity = `${chunk.metadata?.source_name || ''} ${chunk.metadata?.source_url || ''}`.toLowerCase();
-          return sourceIdentity.includes(entityHint);
+          const chunkText = (chunk.metadata?.chunk_text || '').toLowerCase();
+          return sourceIdentity.includes(entityHint) || chunkText.includes(entityHint);
         })
       : [];
-  const baseContextChunks = entityScopedRelevantChunks.length > 0 ? entityScopedRelevantChunks : relevantChunks;
+
+  // If the user asked about a specific entity (e.g. "Paris") but the vector store has zero
+  // chunks that actually mention that entity, the retrieved chunks are just noise from
+  // semantically-similar-but-different topics (e.g. other city descriptions).
+  // In that case, skip the vector store entirely so the LLM can use its general knowledge.
+  const entityMissingFromStore = entityHint.length > 0 && entityScopedRelevantChunks.length === 0;
+  if (entityMissingFromStore) {
+    logger.info(`Entity "${entityHint}" not found in any vector chunk — skipping vector store, will use general knowledge.`);
+  }
+
+  const baseContextChunks = !entityMissingFromStore && entityScopedRelevantChunks.length > 0
+    ? entityScopedRelevantChunks
+    : !entityMissingFromStore
+      ? relevantChunks
+      : [];
   const chunkCandidatesForContext =
     populationFactChunks.length > 0
       ? [
@@ -284,16 +299,20 @@ const buildRetrievalContext = async (params: {
     })
     .join('\n\n');
 
+  const effectiveShouldUseVectorStore = !entityMissingFromStore && shouldUseVectorStore;
+
   logger.info(
     `Retrieved ${retrievedChunks.length} chunks for query, ${relevantChunks.length} passed relevance threshold ${minVectorRelevanceScore}`,
   );
-  logger.info(`Context built with ${Math.min(relevantChunks.length, 3)} chunks (~${contextChunks.length} chars total)`);
+  logger.info(
+    `Context built with ${chunkCandidatesForContext.length} chunks (~${contextChunks.length} chars total); entityMissing=${entityMissingFromStore}`,
+  );
 
   return {
     retrievedChunks,
-    relevantChunks,
-    shouldUseVectorStore,
-    contextChunks,
+    relevantChunks: effectiveShouldUseVectorStore ? relevantChunks : [],
+    shouldUseVectorStore: effectiveShouldUseVectorStore,
+    contextChunks: effectiveShouldUseVectorStore ? contextChunks : '',
   };
 };
 
