@@ -25,7 +25,7 @@
     "express-validator": "^7.0.0",
     "helmet": "^7.0.0",
     "jsonwebtoken": "^9.0.0",
-    "langchain": "^0.2.19",
+    "langchain": "^1.2.35",
     "multer": "^2.1.1",
     "openai": "^4.0.0",
     "pdf-parse": "^1.1.1",
